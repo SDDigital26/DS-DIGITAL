@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { LOCALE_COOKIE, defaultLocale, isLocale } from "@/lib/i18n/config";
+import { SESSION_COOKIE } from "@/lib/session-cookie";
 
 function detectLocale(request: NextRequest): string {
   // 1. Сохранённый выбор пользователя — приоритет (ТЗ §15, без повторного авто-переключения)
@@ -45,16 +46,34 @@ export function middleware(request: NextRequest) {
   const firstSegment = pathname.split("/")[1];
   const knownLocale = isLocale(firstSegment);
 
+  // Админка: без сессионной cookie — сразу 307 на страницу входа.
+  // Это внешняя граница без обращения к БД; основной контроль — серверный гард
+  // в layout (проверка сессии в PostgreSQL). API админки cookie не требует —
+  // роуты отвечают 401/403 JSON.
+  const isAdminPage =
+    (pathname === "/admin" || pathname.startsWith("/admin/")) && pathname !== "/admin/login";
+  if (isAdminPage) {
+    const hasSession = Boolean(request.cookies.get(SESSION_COOKIE)?.value);
+    if (!hasSession) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin/login";
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
+  }
+
   if (!knownLocale) {
-    // Маршруты без префикса языка (favicon, robots, sitemap, api) пропускаем,
-    // остальное — на язык по умолчанию
-    const isStaticish =
+    // Маршруты без префикса языка пропускаем: статика, API и админка.
+    // /admin нельзя отправлять на /en/admin — это другой маршрут (404).
+    const isPrefixless =
       pathname.startsWith("/_next") ||
       pathname.startsWith("/api") ||
+      pathname === "/admin" ||
+      pathname.startsWith("/admin/") ||
       pathname.includes(".") ||
       pathname === "/robots.txt" ||
       pathname === "/sitemap.xml";
-    if (isStaticish) return NextResponse.next();
+    if (isPrefixless) return NextResponse.next();
 
     const locale = detectLocale(request);
     const url = request.nextUrl.clone();

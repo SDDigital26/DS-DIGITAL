@@ -2,33 +2,20 @@ import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { hashPassword, verifyPassword } from "@/lib/password";
+import { SESSION_COOKIE } from "@/lib/session-cookie";
+import { isRole, ROLE_RANK, type Role } from "@/lib/roles";
 
 export { hashPassword, verifyPassword };
+export { isRole, ROLE_RANK };
+export { SESSION_COOKIE };
+export type { Role };
 
 /**
- * Сессии и роли админки (Док.2 §16, ТЗ §21).
- *
- * - пароль: scrypt + уникальная соль (без bcrypt-зависимости);
- * - сессия: opaque-токен в HttpOnly cookie, хранится в Session (не JWT) —
- *   позволяет немедленно отозвать выходом;
- * - PII/секреты в логи не пишем.
+ * Сессии админки (Док.2 §16, ТЗ §21): opaque HttpOnly-токен в таблице Session,
+ * пароли scrypt, блокировка после 5 неудачных попыток, PII в логи не пишем.
  */
 
-export const SESSION_COOKIE = "ds_session";
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 дней
-
-export type Role = "OWNER" | "ADMIN" | "EDITOR" | "MANAGER";
-
-export const ROLE_RANK: Record<Role, number> = {
-  MANAGER: 1,
-  EDITOR: 2,
-  ADMIN: 3,
-  OWNER: 4,
-};
-
-export function isRole(value: unknown): value is Role {
-  return value === "OWNER" || value === "ADMIN" || value === "EDITOR" || value === "MANAGER";
-}
 
 /** Проверка пароля и создание сессии. */
 export async function login(email: string, password: string): Promise<boolean> {
