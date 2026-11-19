@@ -13,9 +13,30 @@ services:
       NODE_ENV: production
       NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3001}
       DATABASE_URL: postgresql://ds:ds_pass@db:5432/ds_digital
+      # Уведомления и служебные секреты — из .env (не коммитится, ТЗ §21.5).
+      # Пусто = провайдер не настроен, уведомления помечаются failed, лид сохраняется.
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      LEADS_NOTIFY_EMAIL: ${LEADS_NOTIFY_EMAIL:-}
+      EMAIL_API_ENDPOINT: ${EMAIL_API_ENDPOINT:-}
+      EMAIL_API_KEY: ${EMAIL_API_KEY:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+      CRON_SECRET: ${CRON_SECRET:-}
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      # node:22-alpine содержит busybox wget.
+      # 127.0.0.1, а не localhost: сервер слушает IPv4, а localhost может
+      # резолвиться в ::1 и дать connection refused.
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
     restart: unless-stopped
 
   # PostgreSQL — подключается на этапе 3 плана (backend/БД).

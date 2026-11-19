@@ -13,6 +13,10 @@ COPY . .
 ARG NEXT_PUBLIC_SITE_URL=http://localhost:3001
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 ENV NEXT_TELEMETRY_DISABLED=1
+# Сгенерированный Prisma-клиент не коммитится — генерируем на этапе сборки.
+# URL нужен только конфигурации Prisma, соединение при сборке не устанавливается.
+ENV DATABASE_URL="postgresql://ds:ds_pass@localhost:5432/ds_digital"
+RUN npx prisma generate
 RUN npm run build
 
 FROM node:22-alpine AS runner

@@ -15,6 +15,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci --no-audit --no-fund
+      # Сгенерированный Prisma-клиент не в репозитории — генерируем без БД
+      - run: npx prisma generate
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test

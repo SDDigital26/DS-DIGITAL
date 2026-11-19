@@ -1,0 +1,354 @@
+// DS DIGITAL — схема PostgreSQL (Док.3 §3).
+// Контент — в БД, не в коде (Док.2 §17).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────── Контент ───────────────────────────
+
+model Project {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  status    String   @default("draft") // live | in_development | archived | draft
+  sort      Int      @default(0)
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  translations ProjectTranslation[]
+  images       ProjectImage[]
+}
+
+model ProjectTranslation {
+  id           String  @id @default(cuid())
+  projectId    String
+  locale       String // ru | en
+  title        String
+  summary      String  @db.Text
+  description  String  @db.Text
+  task         String  @db.Text
+  solution     String  @db.Text
+  features     Json // список функций
+  tech         Json // технологии
+  category     String
+  seoTitle     String?
+  seoDesc      String?
+  ogImage      String?
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, locale])
+}
+
+model ProjectImage {
+  id        String  @id @default(cuid())
+  projectId String
+  url       String
+  altRu     String
+  altEn     String
+  type      String @default("screenshot") // cover | screenshot
+  sort      Int    @default(0)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model Service {
+  id        String  @id @default(cuid())
+  slug      String  @unique
+  sort      Int     @default(0)
+  icon      String?
+  published Boolean @default(true)
+
+  translations ServiceTranslation[]
+}
+
+model ServiceTranslation {
+  id        String  @id @default(cuid())
+  serviceId String
+  locale    String
+  title     String
+  hero      String  @db.Text
+  problem   String  @db.Text
+  solution  String  @db.Text
+  benefits  Json
+  seoTitle  String?
+  seoDesc   String?
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceId, locale])
+}
+
+model Testimonial {
+  id          String   @id @default(cuid())
+  authorName  String
+  authorRole  String?
+  text        String   @db.Text
+  locale      String
+  avatarUrl   String?
+  approved    Boolean  @default(false) // публикация только при true (ТЗ C-2)
+  consentAt   DateTime? // согласие автора на публикацию (ТЗ §4.6)
+  sort        Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model Page {
+  id        String @id @default(cuid())
+  path      String @unique // /about и т.п.
+  type      String // about | process | faq | home_custom
+  published Boolean @default(true)
+
+  translations PageTranslation[]
+}
+
+model PageTranslation {
+  id       String @id @default(cuid())
+  pageId   String
+  locale   String
+  title    String
+  content  Json // структурированные блоки
+  seoTitle String?
+  seoDesc  String?
+
+  page Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@unique([pageId, locale])
+}
+
+model FaqItem {
+  id        String  @id @default(cuid())
+  pageId    String?
+  section   String  @default("faq")
+  locale    String
+  question  String
+  answer    String  @db.Text
+  sort      Int     @default(0)
+  published Boolean @default(true)
+}
+
+model MediaAsset {
+  id           String   @id @default(cuid())
+  key          String   @unique // ключ в S3-хранилище
+  url          String
+  width        Int?
+  height       Int?
+  mimeType     String
+  sizeBytes    Int
+  altRu        String   @default("")
+  altEn        String   @default("")
+  uploadedById String?
+  createdAt    DateTime @default(now())
+
+  uploadedBy User? @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+}
+
+model SeoSetting {
+  id        String  @id @default(cuid())
+  locale    String
+  path      String // напр. /services/web-development
+  title     String
+  desc      String?
+  ogImage   String?
+  noindex   Boolean @default(false)
+
+  @@unique([locale, path])
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────── Калькулятор ───────────────────────────
+
+model CalculatorRule {
+  id        String   @id @default(cuid())
+  kind      String // service | type | feature | complexity | option
+  key       String
+  locale    String   @default("ru")
+  label     String
+  price     Int      @default(0) // вклад в цену
+  weight    Int      @default(0)
+  active    Boolean  @default(true)
+  sort      Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([kind, key, locale])
+}
+
+model CalculatorConfig {
+  id         String   @id @default(cuid())
+  formula    Json // { basePrice, complexityFactors, corridor }
+  disclaimer String   @db.Text
+  updatedAt  DateTime @updatedAt
+}
+
+// ─────────────────────────── Лиды ───────────────────────────
+
+model Lead {
+  id             String    @id @default(cuid())
+  name           String?
+  email          String?
+  whatsapp       String?
+  telegram       String?
+  country        String?
+  language       String    @default("en")
+  service        String?
+  budget         String?
+  description    String    @db.Text
+  source         String    @default("form") // form | calculator | ai | contact
+  status         String    @default("New") // New | In Progress | Qualified | Won | Lost
+  // UTM / кампании (Док.2 §14.1)
+  utmSource      String?
+  utmMedium      String?
+  utmCampaign    String?
+  utmContent     String?
+  utmTerm        String?
+  gclid          String?
+  fbclid         String?
+  landingPath    String?
+  firstTouchAt   DateTime?
+  // снимки
+  calculatorSnap Json?
+  aiTranscript   Json? // только при согласии
+  consentAt      DateTime? // факт согласия на обработку PII (ТЗ §25.4)
+  consentText    String?
+  idempotencyKey String?   @unique // защита от дублей повторной отправки
+  ipHash         String?   // обезличено (без PII в логах)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  comments           LeadComment[]
+  statusHistory      LeadStatusHistory[]
+  notifications      NotificationLog[]
+  aiConversations    AiConversation[]
+}
+
+model LeadComment {
+  id        String   @id @default(cuid())
+  leadId    String
+  authorId  String
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+
+  lead   Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model LeadStatusHistory {
+  id     String   @id @default(cuid())
+  leadId String
+  from   String
+  to     String
+  userId String?
+  at     DateTime @default(now())
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+}
+
+// ─────────────────────────── Уведомления ───────────────────────────
+
+model NotificationLog {
+  id          String    @id @default(cuid())
+  leadId      String
+  channel     String // email | telegram
+  status      String    @default("pending") // pending | sent | failed
+  attempts    Int       @default(0)
+  lastError   String?   // обезличено, без PII
+  nextRetryAt DateTime?
+  createdAt   DateTime  @default(now())
+  sentAt      DateTime?
+
+  lead Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextRetryAt])
+}
+
+// ─────────────────────────── AI-консультант ───────────────────────────
+
+model AiConversation {
+  id        String    @id @default(cuid())
+  sessionKey String // аноимный идентификатор сессии
+  locale    String    @default("en")
+  leadId    String?
+  createdAt DateTime  @default(now())
+  expiresAt DateTime  // TTL (ТЗ §13.3)
+
+  messages  AiMessage[]
+  lead      Lead?      @relation(fields: [leadId], references: [id], onDelete: SetNull)
+
+  @@index([sessionKey])
+  @@index([expiresAt])
+}
+
+model AiMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  role           String // user | assistant
+  content        String   @db.Text
+  createdAt      DateTime @default(now())
+
+  conversation AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+// ─────────────────────────── Пользователи / доступ ───────────────────────────
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  passwordHash    String
+  name            String?
+  role            String // OWNER | ADMIN | EDITOR | MANAGER
+  active          Boolean   @default(true)
+  failedAttempts  Int       @default(0)
+  lockedUntil     DateTime?
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+
+  sessions    Session[]
+  comments    LeadComment[]
+  media       MediaAsset[]
+  auditLogs   AuditLog[]
+}
+
+model Session {
+  id        String   @id // opaque cookie value
+  userId    String
+  ipHash    String?
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model AuditLog {
+  id       String   @id @default(cuid())
+  userId   String?
+  action   String
+  entity   String
+  entityId String?
+  diff     Json? // без PII (ТЗ §21.14)
+  at       DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entity, entityId])
+}
+
+model RateLimitEntry {
+  bucket      String
+  windowStart DateTime
+  count       Int      @default(0)
+
+  @@id([bucket, windowStart])
+}
