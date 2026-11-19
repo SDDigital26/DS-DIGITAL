@@ -1,0 +1,41 @@
+# DS DIGITAL — Development / Staging окружение на Docker
+# Запуск: docker compose up -d --build
+# Приложение: http://localhost:3000
+services:
+  web:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3001}
+    ports:
+      - "3001:3000"
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3001}
+      DATABASE_URL: postgresql://ds:ds_pass@db:5432/ds_digital
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # PostgreSQL — подключается на этапе 3 плана (backend/БД).
+  # Порт 5433, чтобы не конфликтовать с чужим контейнером postgres на 5432.
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: ds
+      POSTGRES_PASSWORD: ds_pass
+      POSTGRES_DB: ds_digital
+    ports:
+      - "5433:5432"
+    volumes:
+      - ds_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ds -d ds_digital"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  ds_pgdata:

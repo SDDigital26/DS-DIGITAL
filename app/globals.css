@@ -1,0 +1,71 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+
+/*
+ * DS DIGITAL — дизайн-токены (ТЗ Док.2 §5.1)
+ * CYBER / FUTURISTIC / PREMIUM — DARK LUXURY
+ * НЕ менять палитру без согласования.
+ */
+
+:root {
+  --bg: #080b14;
+  --surface: #111827;
+  --accent-blue: #176bff;
+  --accent-violet: #8b5cff;
+  --accent-cyan: #35d8ff;
+  --white: #ffffff;
+  --text-secondary: #a8b4c9;
+  /*
+   * [С] Осветлённый синий для мелкого текста/ссылок.
+   * #176BFF на #080B14 даёт ~4.2:1 — ниже WCAG AA 4.5:1 для мелкого текста
+   * (аудит P1-3). Требует согласования оттенка.
+   */
+  --accent-blue-text: #4d8fff;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-accent: var(--accent-blue);
+  --color-violet: var(--accent-violet);
+  --color-cyan: var(--accent-cyan);
+  --color-secondary: var(--text-secondary);
+  --color-link: var(--accent-blue-text);
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Фокус виден клавиатуре (ТЗ §10: hover-эффекты имеют фокус-эквивалент) */
+:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+}
+
+/* Уважение к prefers-reduced-motion — все декоративные эффекты отключаются */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Нет горизонтальной прокрутки (ТЗ §20) */
+html,
+body {
+  overflow-x: hidden;
+}
