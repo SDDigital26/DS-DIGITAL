@@ -60,7 +60,20 @@ BUILD. AUTOMATE. SCALE.
 - Публичные страницы `/ru|en/services` и `/ru|en/services/[slug]` читают БД; черновики не показываются; у страницы услуги — секции «Проблема/Решение/Преимущества», CTA и переключатель языков по доступным переводам.
 - Известное ограничение (осознанное): на динамических маршрутах (`/admin/*`, `/services/*`) Next 16 с `cacheComponents` отдаёт HTTP 200 с корректной 404-страницей в теле при неизвестном slug — статус 404 здесь недоступен без отказа от PPR/динамики. Произвольные пути (`/ru/bad-page`) по-прежнему дают настоящий 404. Точное решение — на этапе производительности (кэширование/ISR).
 
-Ещё не сделано (этап 4): разделы **Projects / Testimonials / Pages / Media / SEO / Settings / Users** — пункты в меню помечены «скоро», CRUD по этим сущностям появится следующими срезами.
+Ещё не сделано (этап 4): разделы **Projects / Pages / Media / SEO / Settings / Users** — пункты в меню помечены «скоро», CRUD по этим сущностям появится следующими срезами.
+
+**Отзывы (проверено фактическими запросами):**
+
+- `/admin/testimonials` — список со статусами «опубликован / нет согласия / черновик», форма с языком, автором, текстом, аватаром, порядком.
+- Жёсткий инвариант ТЗ §4.6/C-2 на сервере: публикация только при `approved = true` **и** зафиксированной дате согласия автора (`consentAt`). Проверено: `PATCH` с `approved: true, consentAt: null` → **400** с понятным сообщением; с датой → 200 и отзыв появился на `/ru/reviews`; снятие одобрения → отзыв исчез, вернулась честная заглушка; `DELETE` → 200. EN-страница не показывает RU-отзыв.
+- Публичная `/ru|en/reviews` (в навигации и sitemap) — только отзывы с согласием; пустое состояние «выдуманные отзывы не размещаем».
+- Права: MANAGER получает **403** на API (`/api/admin/testimonials`, `/api/admin/faq`, `/api/admin/services`), 401 без cookie; ссылки в его меню отсутствуют. Данные в HTML не утекают — в теле только `NEXT_REDIRECT;replace;/admin`.
+
+**FAQ из БД (проверено):**
+
+- `/admin/faq` — список и форма (язык, секция, вопрос, ответ, порядок, публикация); API `GET/POST /api/admin/faq`, `GET/PATCH/DELETE /api/admin/faq/[id]`, аудит `faq.create/update/delete`, `revalidatePath`.
+- Публичная `/ru|en/faq` читает БД (`<details>`-аккордеон), черновики скрыты, пустое состояние — честная заглушка. Проверено: создание → вопрос/ответ на странице; `published: false` → вопрос скрыт, заглушка вернулась; пустой ответ → **400**; `DELETE` → 200.
+- Общий модуль `lib/revalidate.ts` (услуги, отзывы, FAQ) вместо дублирования `revalidatePath` в роутах.
 
 ## Запуск (Docker)
 
@@ -142,7 +155,8 @@ lib/password.ts      # scrypt-хеши (используются и вне Next)
 lib/rate-limit.ts    # окно rate limit на PostgreSQL
 lib/notifications.ts # очередь уведомлений + exponential backoff
 lib/integrations/    # адаптеры email / telegram (ключи серверные)
-lib/validation/      # Zod-схемы (лид, услуга)
+lib/validation/      # Zod-схемы (лид, услуга, отзыв, FAQ)
+lib/revalidate.ts    # сброс кэша публичных страниц после правок в админке
 lib/services.ts      # 7 направлений из брифа (источник для seed:content)
 prisma/schema.prisma # схема PostgreSQL + миграции
 scripts/seed-owner.ts# создание первого OWNER
@@ -167,6 +181,10 @@ docker-compose.yml   # web:3001 + postgres:5433 (healthcheck на обоих)
 | `GET` | `/api/admin/leads/export` | CSV-экспорт с текущими фильтрами (право `leads_export`) |
 | `GET` / `POST` | `/api/admin/services` | список / создание услуги (право `content`) |
 | `GET` / `PATCH` / `DELETE` | `/api/admin/services/[id]` | карточка / правка / удаление услуги (право `content`) |
+| `GET` / `POST` | `/api/admin/testimonials` | список / создание отзыва (право `content`) |
+| `GET` / `PATCH` / `DELETE` | `/api/admin/testimonials/[id]` | карточка / правка / удаление отзыва (право `content`) |
+| `GET` / `POST` | `/api/admin/faq` | список / создание вопроса FAQ (право `content`) |
+| `GET` / `PATCH` / `DELETE` | `/api/admin/faq/[id]` | карточка / правка / удаление вопроса (право `content`) |
 | `POST` | `/api/cron/notifications` | обработка очереди (нужен `CRON_SECRET`) |
 | `GET` | `/api/health` | проверка процесса и PostgreSQL |
 

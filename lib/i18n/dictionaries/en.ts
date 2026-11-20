@@ -20,6 +20,12 @@ export const en = {
     empty: "Cases are published only for projects that actually exist.",
   },
   process: { title: "Development Process", subtitle: "How we work on a project." },
+  reviews: {
+    title: "Reviews",
+    subtitle: "What clients say about working with the studio.",
+    empty:
+      "Reviews are published only with the author's consent. There are no approved reviews yet — we do not publish invented ones.",
+  },
   faq: { title: "FAQ", subtitle: "Frequently asked questions about working with the studio." },
   contact: { title: "Contacts", subtitle: "Reach us the way you prefer." },
   about: {

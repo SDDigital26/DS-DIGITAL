@@ -8,6 +8,7 @@ const NAV_PATHS = [
   { key: "projects", path: "/projects" },
   { key: "about", path: "/about" },
   { key: "process", path: "/process" },
+  { key: "reviews", path: "/reviews" },
   { key: "faq", path: "/faq" },
   { key: "contacts", path: "/contact" },
 ] as const;

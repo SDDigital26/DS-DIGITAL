@@ -1,18 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requirePermissionApi } from "@/lib/permissions";
 import { serviceSchema } from "@/lib/validation/service";
+import { revalidateService } from "@/lib/revalidate";
 
 type Params = { params: Promise<{ id: string }> };
-
-/** Публичные страницы услуги — сбрасываем кэш после правок (без деплоя, ТЗ §17). */
-function revalidateService(slug: string) {
-  revalidatePath("/ru/services");
-  revalidatePath("/en/services");
-  revalidatePath(`/ru/services/${slug}`);
-  revalidatePath(`/en/services/${slug}`);
-}
 
 /** GET /api/admin/services/[id] — карточка услуги с переводами. Право: content. */
 export async function GET(_request: NextRequest, { params }: Params) {
