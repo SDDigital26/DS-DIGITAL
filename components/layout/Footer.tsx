@@ -10,7 +10,7 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
     <footer className="border-t border-white/5 bg-bg">
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3">
         <div>
-          <p className="text-lg font-bold">
+          <p className="text-xl font-bold">
             DS<span className="text-accent"> DIGITAL</span>
           </p>
           <p className="mt-2 text-sm text-secondary">{dict.home.slogan}</p>

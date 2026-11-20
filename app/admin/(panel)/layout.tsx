@@ -22,7 +22,7 @@ export default async function AdminPanelLayout({
     <div className="min-h-screen bg-bg text-white lg:flex">
       {/* Боковая панель (lg+) */}
       <aside className="hidden w-60 shrink-0 flex-col border-r border-white/5 bg-surface/40 p-4 lg:flex">
-        <Link href="/admin" className="px-2 py-2 text-lg font-bold">
+        <Link href="/admin" className="px-2 py-2 text-xl font-bold">
           DS<span className="text-accent"> DIGITAL</span>
           <span className="block text-[11px] font-normal uppercase tracking-widest text-secondary">
             Админка
@@ -64,7 +64,7 @@ export default async function AdminPanelLayout({
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="border-b border-white/5 bg-surface/40 p-3 lg:hidden">
           <div className="flex items-center justify-between gap-2">
-            <Link href="/admin" className="text-base font-bold">
+            <Link href="/admin" className="text-xl font-bold">
               DS<span className="text-accent"> DIGITAL</span>
               <span className="ml-2 text-[10px] font-normal uppercase text-secondary">Админка</span>
             </Link>

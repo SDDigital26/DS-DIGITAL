@@ -18,8 +18,7 @@ export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
         <Link
           href={`/${locale}`}
-          className="text-lg font-bold tracking-tight"
-          aria-label="DS DIGITAL"
+          className="text-xl font-bold tracking-tight"
         >
           DS<span className="text-accent"> DIGITAL</span>
         </Link>

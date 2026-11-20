@@ -36,8 +36,24 @@ export const en = {
     slogan: "BUILD. AUTOMATE. SCALE.",
     heroText:
       "DS DIGITAL — international Digital Development Studio. Digital product development, automation and digitalization of business processes.",
+    headline: "Digital products that move business forward",
+    subhead:
+      "We build websites, web applications, CRM systems, Telegram bots and AI solutions that help your business grow.",
     ctaPrimary: "Start Your Project",
     ctaSecondary: "View Services",
+    scrollHint: "Scroll down",
+    showcaseTitle: "What we build",
+    showcaseHint: "Hover over or tap a card to see an example.",
+    showcaseEmptyTitle: "Example coming soon",
+    showcaseEmptyText:
+      "An interactive example will appear here once the content is ready and fact-checked.",
+    demoTitle: "KarmaRent CRM",
+    demoNote:
+      "An interactive demo with test data will appear here once we receive the screenshots and permission to showcase the project.",
+    ctaTitle: "Ready to start?",
+    ctaText: "Tell us about your task and we will propose a solution.",
+    prototypeNote:
+      "This is a prototype: real contact links will be added once we receive your details.",
     contentPending: "Section content is being prepared and will be published after fact-checking.",
   },
   footer: {
