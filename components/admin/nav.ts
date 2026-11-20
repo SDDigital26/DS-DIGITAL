@@ -13,7 +13,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: "/admin", label: "Дашборд", permission: "dashboard" },
   { href: "/admin/leads", label: "Заявки", permission: "leads" },
   { href: "/admin/projects", label: "Проекты", permission: "content", soon: true },
-  { href: "/admin/services", label: "Услуги", permission: "content", soon: true },
+  { href: "/admin/services", label: "Услуги", permission: "content" },
   { href: "/admin/testimonials", label: "Отзывы", permission: "content", soon: true },
   { href: "/admin/pages", label: "Контент", permission: "content", soon: true },
   { href: "/admin/media", label: "Медиа", permission: "media", soon: true },

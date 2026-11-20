@@ -7,7 +7,7 @@ BUILD. AUTOMATE. SCALE.
 
 ## Текущий статус (20.11.2026)
 
-**Этапы 0–3 плана выполнены, этап 4 — в работе (готов CRM заявок и каркас админки).**
+**Этапы 0–3 плана выполнены, этап 4 — в работе (CRM заявок, каркас админки, CRUD услуг).**
 
 ### Этапы 0–2
 
@@ -43,8 +43,15 @@ BUILD. AUTOMATE. SCALE.
 - **API**: `GET /api/admin/leads/export` (CSV, BOM для Excel, защита от CSV-инъекции, аудит `leads.export`), `PATCH /api/admin/leads/[id]`, `POST .../comments`, `POST .../notifications`.
 - Все мутации пишут `AuditLog` без PII.
 
-Ещё не сделано (этап 4): разделы **Projects / Services / Testimonials / Pages / Media / SEO / Settings / Users** — пункты в меню помечены «скоро», CRUD по этим сущностям появится следующими срезами.
-- Ограничение сейчас осознанно: админка уже приносит пользу (заявка → обработка → экспорт), но это не весь объём §17.
+**Услуги — контент из БД (проверено: правка в админке → публичная страница обновилась без деплоя):**
+
+- `npm run seed:content` заводит 7 направлений из брифа (`lib/services.ts` — структурный список, не контент); дальше источник истины — `Service` + `ServiceTranslation` в PostgreSQL.
+- Админка: `/admin/services` (список, «Новая услуга») и `/admin/services/[id]` / `new` — форма с RU/EN-блоками (title, hero, problem, solution, benefits по строкам, SEO title/desc), slug, иконка, порядок, черновик/публикация. Право — `content`.
+- API: `GET/POST /api/admin/services`, `GET/PATCH/DELETE /api/admin/services/[id]` (Zod-валидация slug/длин/языков, уникальность slug, upsert переводов, аудит `service.create/update/delete`, `revalidatePath` публичных страниц).
+- Публичные страницы `/ru|en/services` и `/ru|en/services/[slug]` читают БД; черновики не показываются; у страницы услуги — секции «Проблема/Решение/Преимущества», CTA и переключатель языков по доступным переводам.
+- Известное ограничение (осознанное): на динамических маршрутах (`/admin/*`, `/services/*`) Next 16 с `cacheComponents` отдаёт HTTP 200 с корректной 404-страницей в теле при неизвестном slug — статус 404 здесь недоступен без отказа от PPR/динамики. Произвольные пути (`/ru/bad-page`) по-прежнему дают настоящий 404. Точное решение — на этапе производительности (кэширование/ISR).
+
+Ещё не сделано (этап 4): разделы **Projects / Testimonials / Pages / Media / SEO / Settings / Users** — пункты в меню помечены «скоро», CRUD по этим сущностям появится следующими срезами.
 
 ## Запуск (Docker)
 
@@ -61,6 +68,7 @@ docker compose up -d --build
 ```bash
 npm run db:migrate        # применить миграции Prisma
 npm run seed:owner        # создать первого OWNER (OWNER_EMAIL=... [OWNER_PASSWORD=...] npm run seed:owner)
+npm run seed:content      # завести 7 услуг из брифа (идемпотентно; дальше правим в админке)
 ```
 
 Проверка:
@@ -95,6 +103,7 @@ npm run dev        # http://localhost:3000
 | `npm run db:migrate:dev` | миграции в dev-режиме |
 | `npm run db:validate` | проверка схемы |
 | `npm run seed:owner` | создание первого OWNER (креды только из окружения) |
+| `npm run seed:content` | завести 7 услуг из брифа в БД (идемпотентно) |
 
 ## Структура
 
@@ -124,10 +133,11 @@ lib/password.ts      # scrypt-хеши (используются и вне Next)
 lib/rate-limit.ts    # окно rate limit на PostgreSQL
 lib/notifications.ts # очередь уведомлений + exponential backoff
 lib/integrations/    # адаптеры email / telegram (ключи серверные)
-lib/validation/      # Zod-схемы
-lib/services.ts      # 7 направлений (ТЗ §8)
+lib/validation/      # Zod-схемы (лид, услуга)
+lib/services.ts      # 7 направлений из брифа (источник для seed:content)
 prisma/schema.prisma # схема PostgreSQL + миграции
 scripts/seed-owner.ts# создание первого OWNER
+scripts/seed-content.ts # первичное наполнение услуг (7 направлений)
 tests/               # vitest
 middleware.ts        # редиректы языка, 307 на /admin без cookie, определение locale
 Dockerfile           # multi-stage, standalone
@@ -146,12 +156,14 @@ docker-compose.yml   # web:3001 + postgres:5433 (healthcheck на обоих)
 | `POST` | `/api/admin/leads/[id]/comments` | комментарий (право `leads`) |
 | `POST` | `/api/admin/leads/[id]/notifications` | ручной ретрай уведомлений (право `leads`) |
 | `GET` | `/api/admin/leads/export` | CSV-экспорт с текущими фильтрами (право `leads_export`) |
+| `GET` / `POST` | `/api/admin/services` | список / создание услуги (право `content`) |
+| `GET` / `PATCH` / `DELETE` | `/api/admin/services/[id]` | карточка / правка / удаление услуги (право `content`) |
 | `POST` | `/api/cron/notifications` | обработка очереди (нужен `CRON_SECRET`) |
 | `GET` | `/api/health` | проверка процесса и PostgreSQL |
 
 ## Следующие этапы (Док.4)
 
-- **Этап 4 (продолжение):** CRUD разделов админки — Projects / Services / Testimonials / Pages / Media / SEO / Settings / Users.
+- **Этап 4 (продолжение):** CRUD разделов админки — Projects / Testimonials / Pages / Media / SEO / Settings / Users.
 - **Этап 5:** контент главной/услуг/кейсов + демо.
 - **Этап 6:** молния за курсором, 3D, режимы Full/Lite/Static.
 - **Этап 7:** калькулятор (нужны стартовые цены — согласование).
