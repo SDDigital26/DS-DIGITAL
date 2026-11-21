@@ -11,6 +11,7 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "docs/**", // статический снимок для GitHub Pages (скопированные JS-чанки)
     "next-env.d.ts",
   ]),
 ]);

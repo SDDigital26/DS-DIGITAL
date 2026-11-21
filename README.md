@@ -30,6 +30,13 @@ BUILD. AUTOMATE. SCALE.
 - **Индикатор связи**: `GET /api/admin/ai-provider/status` делает реальный тестовый запрос к провайдеру и отдает `connected`/`detail`. Бейдж на дашборде (`components/admin/AiStatusBadge.tsx`) и блок в форме настроек показывают «связь есть / нет связи» с причиной; обновление раз в 2 минуты.
 - Маркировка «AI-ассистент» сохранена в виджете и на главной; текст обновлён под обе возможности (скрипт / подключённая модель).
 
+### Блог SEO-статей (этап 9, 21.11.2026)
+
+- Раздел `/ru/blog`, `/en/blog` и статьи `/{locale}/blog/{slug}`; контент хранится в `Article`/`ArticleTranslation` и правится в `/admin/articles` **без программиста** (RU/EN, статус, FAQ, SEO-поля). Пункт «SEO-статьи» в меню админки.
+- Первые 5 статей (RU+EN): `site-development-cost`, `how-to-choose-a-developer`, `crm-for-small-business`, `ai-solutions-for-business`, `telegram-bot-for-leads`. Сид: `npm run seed:articles`. Все факты — только с сайта; там, где факта нет, стоит пометка «Проверить перед публикацией».
+- Статическая витрина для GitHub Pages: `npm run pages:build` → `docs/` ( Pages включён на `main:/docs`). На Pages нет API/БД, поэтому JS убирается, формы и админка работают только на полной версии.
+- FAQ Articles: `Article` + `ArticleTranslation` (миграция `add_articles`). В sitemap статьи добавлены с hreflang только по реально существующим переводам. На странице статьи — `Article` + `FAQPage` JSON-LD, canonical/hreflang/OG.
+
 ### Telegram-бот для заявок (21.11.2026)
 
 - `/admin/settings` → секция «Telegram-бот для заявок» (`components/admin/TelegramBotForm.tsx`): токен бота, Chat ID/канал, включение бота и флаг уведомления о новых заявках, кнопка «Отправить тест».

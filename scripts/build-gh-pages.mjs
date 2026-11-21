@@ -9,8 +9,8 @@
  * Запуск: PREVIEW_BASE=http://localhost:3001 npm run pages:build
  * Результат: docs/ — отдаётся GitHub Pages из ветки main, папки /docs.
  */
-import { mkdir, readFile, writeFile, cp, readdir } from "node:fs/promises";
-import { join, dirname, extname } from "node:path";
+import { mkdir, writeFile, cp } from "node:fs/promises";
+import { join, dirname } from "node:path";
 
 const BASE = process.env.PREVIEW_BASE ?? "http://localhost:3001";
 const PREFIX = process.env.PAGES_PREFIX ?? "/DS-DIGITAL";

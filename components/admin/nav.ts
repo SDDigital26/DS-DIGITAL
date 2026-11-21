@@ -15,6 +15,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: "/admin/projects", label: "Проекты", permission: "content" },
   { href: "/admin/services", label: "Услуги", permission: "content" },
   { href: "/admin/faq", label: "FAQ", permission: "content" },
+  { href: "/admin/articles", label: "SEO-статьи", permission: "content" },
   { href: "/admin/testimonials", label: "Отзывы", permission: "content" },
   { href: "/admin/calculator", label: "Калькулятор", permission: "settings" },
   { href: "/admin/pages", label: "Контент", permission: "content", soon: true },

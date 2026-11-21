@@ -14,6 +14,7 @@ export type NavKey =
   | "services"
   | "projects"
   | "about"
+  | "blog"
   | "calculator"
   | "process"
   | "reviews"
@@ -32,6 +33,7 @@ export type SiteContent = {
     services: string;
     projects: string;
     about: string;
+    blog: string;
     calculator: string;
     process: string;
     reviews: string;
@@ -122,6 +124,7 @@ const RU: SiteContent = {
     services: "Услуги",
     projects: "Проекты",
     about: "О студии",
+    blog: "Блог",
     calculator: "Калькулятор",
     process: "Процесс",
     reviews: "Отзывы",
@@ -365,6 +368,7 @@ const EN: SiteContent = {
     services: "Services",
     projects: "Projects",
     about: "About",
+    blog: "Blog",
     calculator: "Calculator",
     process: "Process",
     reviews: "Reviews",

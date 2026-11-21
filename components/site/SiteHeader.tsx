@@ -10,6 +10,7 @@ const NAV: { key: NavKey; href: string }[] = [
   { key: "services", href: "#services" },
   { key: "projects", href: "#projects" },
   { key: "about", href: "/about" },
+  { key: "blog", href: "/blog" },
   { key: "calculator", href: "#calc" },
   { key: "process", href: "#process" },
   { key: "reviews", href: "#reviews" },

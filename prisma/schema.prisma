@@ -121,6 +121,33 @@ model PageTranslation {
   @@unique([pageId, locale])
 }
 
+// SEO-статьи (этап 9, Док.4): редактируются в админке без деплоя.
+model Article {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  status      String   @default("draft") // draft | published
+  publishedAt DateTime?
+  sort        Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  translations ArticleTranslation[]
+}
+
+model ArticleTranslation {
+  id        String  @id @default(cuid())
+  articleId String
+  locale    String // ru | en
+  title     String
+  excerpt   String  @db.Text
+  body      String  @db.Text // Markdown-подобный текст (H2/H3, списки, ссылки)
+  seoTitle  String?
+  seoDesc   String?
+  faq       Json    @default("[]") // [{ q, a }] — также отдаётся как FAQPage JSON-LD
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([articleId, locale])
+}
+
 model FaqItem {
   id        String  @id @default(cuid())
   pageId    String?
