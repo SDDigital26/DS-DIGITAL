@@ -2404,3 +2404,163 @@ html[data-effects="static"] .preloader {
     transition: none !important;
   }
 }
+
+/* ============================================================
+   СВЕТЛАЯ ТЕМА — читаемая, без молний/звёзд, со светлыми плашками
+   ============================================================ */
+
+/* Молния и звёзды на светлом фоне не нужны — убираем */
+html[data-theme="light"] #ds-fx {
+  display: none;
+}
+
+html[data-theme="light"] .ds .stars {
+  display: none;
+}
+
+/* Орбита на светлом — мягкая, в сине-фиолетовых тонах */
+html[data-theme="light"] .ds #orbit {
+  opacity: 0.55;
+}
+
+/* Плашки услуг — светлые с тёмным текстом */
+html[data-theme="light"] .ds .scard {
+  background: linear-gradient(160deg, #ffffff, #f0f4fb);
+  border: 1px solid rgba(23, 107, 255, 0.18);
+  box-shadow: 0 8px 24px rgba(13, 20, 36, 0.06);
+}
+
+html[data-theme="light"] .ds .scard h3 {
+  color: #0d1424;
+}
+
+html[data-theme="light"] .ds .scard p {
+  color: #47536b;
+}
+
+html[data-theme="light"] .ds .scard svg {
+  stroke: #176bff;
+}
+
+html[data-theme="light"] .ds .scard:hover,
+html[data-theme="light"] .ds .scard:focus-visible,
+html[data-theme="light"] .ds .scard.on {
+  border-color: #8b5cff;
+  box-shadow: 0 12px 30px rgba(23, 107, 255, 0.14);
+}
+
+/* Подсветка при наведении — светло-синяя вместо фиолетовой */
+html[data-theme="light"] .ds .scard::after {
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 0%), rgba(23, 107, 255, 0.14), transparent 62%);
+}
+
+/* Мини-визуализации в плашках на светлом фоне */
+html[data-theme="light"] .ds .demo,
+html[data-theme="light"] .ds .demo b,
+html[data-theme="light"] .ds .smsg,
+html[data-theme="light"] .ds .viz i {
+  color: #0d1424;
+}
+
+html[data-theme="light"] .ds .demo {
+  background: rgba(13, 20, 36, 0.04);
+}
+
+html[data-theme="light"] .ds .smsg {
+  background: rgba(23, 107, 255, 0.12);
+  color: #0d1424;
+}
+
+html[data-theme="light"] .ds .dot {
+  background: #176bff;
+}
+
+/* Код на фоне — тёмный и читаемый на светлом */
+html[data-theme="light"] .ds .gh {
+  color: #1757c0;
+  text-shadow: none;
+  border-left-color: rgba(23, 107, 255, 0.4);
+  background: linear-gradient(90deg, rgba(23, 107, 255, 0.06), transparent);
+}
+
+html[data-theme="light"] .ds .gh.on {
+  opacity: 0.75;
+}
+
+html[data-theme="light"] .ds .gh .c {
+  color: #6b7a99;
+}
+
+html[data-theme="light"] .ds .gh .p {
+  color: #176bff;
+}
+
+html[data-theme="light"] .ds .gh .o {
+  color: #0a9e63;
+}
+
+html[data-theme="light"] .ds .gh .d {
+  color: #47536b;
+}
+
+html[data-theme="light"] .ds .gh .k {
+  color: #7c3aed;
+}
+
+html[data-theme="light"] .ds .gh .s {
+  color: #0e7490;
+}
+
+/* Проекты на светлом — светлые карточки */
+html[data-theme="light"] .ds .proj {
+  background: linear-gradient(135deg, #ffffff, #f5f7fb);
+  border-color: rgba(23, 107, 255, 0.18);
+}
+
+html[data-theme="light"] .ds .proj h3,
+html[data-theme="light"] .ds .proj .tag {
+  color: #0d1424;
+}
+
+html[data-theme="light"] .ds .proj .tag {
+  border-color: rgba(23, 107, 255, 0.35);
+}
+
+html[data-theme="light"] .ds .feat li {
+  background: rgba(139, 92, 255, 0.12);
+  color: #0d1424;
+}
+
+/* Якорь/заголовки секций на светлом — уже тёмные через --text */
+html[data-theme="light"] .ds .kicker,
+html[data-theme="light"] .ds .stag {
+  color: #176bff;
+  text-shadow: none;
+}
+
+/* Anti-glow у с_logo и прочих неоновых элементов */
+html[data-theme="light"] .ds .slogan {
+  color: #47536b;
+}
+
+/* Шапка на светлом — светлая, без тёмного градиента */
+html[data-theme="light"] .ds header.nav {
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid rgba(13, 20, 36, 0.08);
+}
+
+/* Убираем «грязный» неоновый ореол у текста на светлом фоне */
+html[data-theme="light"] .ds .hero h1,
+html[data-theme="light"] .ds .stag {
+  text-shadow: none;
+}
+
+html[data-theme="light"] .ds .scopy::before {
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.6), transparent 70%);
+}
+
+/* Ссылки в шапке — тёмные, не синие */
+html[data-theme="light"] .ds header.nav nav a,
+html[data-theme="light"] .ds .mobile-menu a {
+  color: #47536b;
+}

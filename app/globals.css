@@ -61,13 +61,12 @@ html[data-theme="light"] body {
 
 /* === Глобальный контент === */
 
-/* Текст и ссылки */
+/* Только настоящие ссылки/акценты — подписи (.slead/.snote) остаются серыми
+   и читаемыми (переопределяются в proto.css, который подключён позже). */
 html[data-theme="light"] a,
 html[data-theme="light"] .text-link,
-html[data-theme="light"] .text-cyan,
-html[data-theme="light"] .slead,
-html[data-theme="light"] .snote {
-  color: #1d4ed8; /* основной синий */
+html[data-theme="light"] .text-cyan {
+  color: #1d4ed8;
 }
 
 /* Заголовки статей — чerné на светлом */
@@ -82,7 +81,7 @@ html[data-theme="light"] .article-body a {
   color: #1d4ed8;
 }
 
-/* === Плашки услуг (scard) === */
+/* === Внутренние страницы (не прототип) === */
 
 /* Фоны карточек — белые с тенью */
 html[data-theme="light"] .bg-surface {
@@ -95,13 +94,6 @@ html[data-theme="light"] .border-white\/10,
 html[data-theme="light"] .border-white\/15,
 html[data-theme="light"] .border-white\/5 {
   border-color: rgba(13, 20, 36, 0.12);
-}
-
-/* Текст внутри карточек */
-html[data-theme="light"] .scard p,
-html[data-theme="light"] .scard .snote,
-html[data-theme="light"] .scard .slead {
-  color: #374151; /* тёмно-серый для читаемости */
 }
 
 /* === Кнопки === */
@@ -138,16 +130,8 @@ html[data-theme="light"] .sbtn:not(.p):hover {
 }
 
 /* === Орбита и круги (canvas effects) === */
-
-/* В светлой теме кольца должны быть видно на белом фоне —
-   оставляем текущие цвета, но можно слегка снизить насыщенность
-   чтобы не «выпрыгивали» из дизайна. */
-/* Прямое переопределение цветов колец — через CSS filter если нужно */
-html[data-theme="light"] .ds .ring.g {
-  /* light: чуть меньше размытия, чтобы было видно */
-  filter: blur(10px);
-  opacity: 0.5;
-}
+/* Цвета орбиты переопределяются в самом canvas (OrbitCanvas.tsx) в зависимости
+   от data-theme; здесь дополнительных правил не требуется. */
 
 /* Текстовые элементы на светлой теме */
 html[data-theme="light"] .text-secondary {

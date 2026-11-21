@@ -82,14 +82,22 @@ export function OrbitCanvas() {
       const R = Math.min(w, hh) * 0.46;
       const cx = w / 2;
       const cy = hh / 2;
+      const light = document.documentElement.dataset.theme === "light";
       g!.clearRect(0, 0, w, hh);
-      g!.globalCompositeOperation = "lighter";
+      // На светлом фоне аддитивная смесь «съедается» — рисуем обычной заливкой.
+      g!.globalCompositeOperation = light ? "source-over" : "lighter";
       g!.lineCap = "round";
 
       const gr = g!.createLinearGradient(cx - R, cy - R, cx + R, cy + R);
-      gr.addColorStop(0, "rgba(53,216,255,1)");
-      gr.addColorStop(0.5, "rgba(23,107,255,1)");
-      gr.addColorStop(1, "rgba(139,92,255,1)");
+      if (light) {
+        gr.addColorStop(0, "rgba(14,116,144,0.9)");
+        gr.addColorStop(0.5, "rgba(23,107,255,0.8)");
+        gr.addColorStop(1, "rgba(124,58,237,0.8)");
+      } else {
+        gr.addColorStop(0, "rgba(53,216,255,1)");
+        gr.addColorStop(0.5, "rgba(23,107,255,1)");
+        gr.addColorStop(1, "rgba(139,92,255,1)");
+      }
 
       const proj = (p: number[], ax: number, ay: number) => {
         const o = rot(p, ax, ay);
@@ -110,11 +118,11 @@ export function OrbitCanvas() {
         }
         g!.strokeStyle = gr;
         if (q > 1) {
-          g!.globalAlpha = 0.1 * rg.al;
+          g!.globalAlpha = (light ? 0.05 : 0.1) * rg.al;
           g!.lineWidth = 14;
           g!.stroke();
         }
-        g!.globalAlpha = 0.8 * rg.al;
+        g!.globalAlpha = (light ? 0.5 : 0.8) * rg.al;
         g!.lineWidth = i === 0 ? 2 : 1.2;
         g!.stroke();
       });
@@ -124,8 +132,8 @@ export function OrbitCanvas() {
       pts.forEach((p) => {
         const o = proj([p.x, p.y, p.z], ax, ay);
         const d = (o[2] + 1.4) / 2.8;
-        g!.globalAlpha = Math.max(0.1, Math.min(1, 0.2 + d * 0.9));
-        g!.fillStyle = "rgb(" + p.c + ")";
+        g!.globalAlpha = Math.max(0.1, Math.min(1, 0.2 + d * 0.9)) * (light ? 0.75 : 1);
+        g!.fillStyle = light ? "rgb(30,80,180)" : "rgb(" + p.c + ")";
         g!.beginPath();
         g!.arc(o[0], o[1], p.s, 0, 6.2832);
         g!.fill();
@@ -189,6 +197,14 @@ export function OrbitCanvas() {
     });
     if (cv.parentElement) io.observe(cv.parentElement);
     document.addEventListener("visibilitychange", onVisibility);
+
+    // При смене темы перерисовываем орбиту (особенно важно при отключённой анимации).
+    const themeObserver = new MutationObserver(() => draw(performance.now()));
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+
     start();
 
     return () => {
@@ -197,6 +213,7 @@ export function OrbitCanvas() {
       window.removeEventListener("pointermove", onPointerMove);
       document.removeEventListener("visibilitychange", onVisibility);
       io.disconnect();
+      themeObserver.disconnect();
     };
   }, []);
 
