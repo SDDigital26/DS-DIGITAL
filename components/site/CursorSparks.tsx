@@ -25,9 +25,9 @@ type Comet = {
 };
 
 /**
- * Светлая тема вместо молнии: искры от движения мыши и «кометы данных» —
- * лёгкие 3D-подобные частицы, создающие ощущение потока данных на сайте.
- * На тёмной теме компонент сам отключается (там работает молния).
+ * Светлая тема вместо молнии: искры от мыши и «кометы данных» —
+ * частицы со связями между узлами, создающие ощущение потока данных.
+ * Включается/выключается через data-theme (переключатель ставит его позже mount).
  */
 export function CursorSparks() {
   const ref = useRef<HTMLCanvasElement | null>(null);
@@ -35,24 +35,24 @@ export function CursorSparks() {
   useEffect(() => {
     const cv = ref.current;
     if (!cv) return;
-
-    // Работаем только в светлой теме и только при точном указателе.
-    const isLight = () => document.documentElement.dataset.theme === "light";
-    if (!isLight() || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const fine = window.matchMedia("(pointer: fine) and (hover: hover)").matches;
-    if (!fine) return;
-
     const ctx = cv.getContext("2d");
     if (!ctx) return;
 
+    const fine = window.matchMedia("(pointer: fine) and (hover: hover)").matches;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+
     let width = 0;
     let height = 0;
     let raf = 0;
+    let running = false;
     let lastMouse = { x: -100, y: -100, t: 0 };
     const sparks: Spark[] = [];
     const comets: Comet[] = [];
     const colors = ["23,107,255", "139,92,255", "53,216,255"];
+
+    const isLight = () =>
+      document.documentElement.dataset.theme === "light" && !reduced && fine;
 
     function size() {
       width = window.innerWidth;
@@ -65,28 +65,29 @@ export function CursorSparks() {
     function spawnSparks(x: number, y: number, count: number) {
       for (let i = 0; i < count; i++) {
         const a = Math.random() * Math.PI * 2;
-        const speed = 0.4 + Math.random() * 1.4;
-        const maxLife = 26 + Math.random() * 24;
+        const speed = 0.5 + Math.random() * 1.6;
+        const maxLife = 30 + Math.random() * 28;
         sparks.push({
           x,
           y,
           vx: Math.cos(a) * speed,
-          vy: Math.sin(a) * speed - 0.3,
+          vy: Math.sin(a) * speed - 0.35,
           life: maxLife,
           maxLife,
           color: colors[Math.floor(Math.random() * colors.length)],
-          size: 0.8 + Math.random() * 1.6,
+          size: 1 + Math.random() * 1.8,
         });
       }
+      if (sparks.length > 120) sparks.splice(0, sparks.length - 120);
     }
 
     function spawnComet() {
       const fromLeft = Math.random() > 0.5;
-      const x = fromLeft ? -30 : width + 30;
-      const y = Math.random() * height * 0.7;
-      const vx = (fromLeft ? 1 : -1) * (0.6 + Math.random() * 0.9);
-      const vy = (Math.random() - 0.3) * 0.5;
-      const maxLife = 220 + Math.random() * 160;
+      const x = fromLeft ? -40 : width + 40;
+      const y = height * (0.15 + Math.random() * 0.55);
+      const vx = (fromLeft ? 1 : -1) * (0.9 + Math.random() * 1.1);
+      const vy = (Math.random() - 0.35) * 0.6;
+      const maxLife = 200 + Math.random() * 140;
       comets.push({
         x,
         y,
@@ -100,47 +101,57 @@ export function CursorSparks() {
     }
 
     function onPointerMove(e: PointerEvent) {
-      if (e.pointerType === "touch") return;
+      if (e.pointerType === "touch" || !running) return;
       const now = performance.now();
       const dx = e.clientX - lastMouse.x;
       const dy = e.clientY - lastMouse.y;
       const dist = Math.hypot(dx, dy);
-      if (dist > 6 && now - lastMouse.t > 16) {
-        spawnSparks(e.clientX, e.clientY, Math.min(4, Math.ceil(dist / 14)));
+      if (dist > 5 && now - lastMouse.t > 14) {
+        spawnSparks(e.clientX, e.clientY, Math.min(6, Math.ceil(dist / 10)));
         lastMouse = { x: e.clientX, y: e.clientY, t: now };
       }
     }
 
     function frame() {
       raf = 0;
-      if (!isLight()) return; // тема переключена на тёмную — останавливаемся
-      if (document.hidden) return;
+      if (!running || !isLight()) return;
+      if (document.hidden) {
+        raf = requestAnimationFrame(frame);
+        return;
+      }
 
       ctx!.clearRect(0, 0, width, height);
-      ctx!.globalCompositeOperation = "source-over";
 
-      // Кометы данных — появляются время от времени
-      if (Math.random() < 0.004 && comets.length < 3) spawnComet();
+      // Кометы данных — появляются часто, оставляют «граф»-связь между узлами
+      if (Math.random() < 0.02 && comets.length < 4) spawnComet();
 
       comets.forEach((c) => {
         c.x += c.vx;
         c.y += c.vy;
         c.life--;
         c.nodes.unshift({ x: c.x, y: c.y });
-        if (c.nodes.length > 14) c.nodes.pop();
+        if (c.nodes.length > 18) c.nodes.pop();
         const t = c.life / c.maxLife;
-        const alpha = Math.sin(Math.min(1, t) * Math.PI) * 0.55;
-        // Связка между узлами — «граф данных»
-        ctx!.strokeStyle = `rgba(${c.color},${alpha * 0.5})`;
-        ctx!.lineWidth = 1;
-        ctx!.beginPath();
-        c.nodes.forEach((n, i) => (i ? ctx!.lineTo(n.x, n.y) : ctx!.moveTo(n.x, n.y)));
-        ctx!.stroke();
+        const alpha = Math.sin(Math.min(1, t) * Math.PI) * 0.8;
+
+        // Линии между соседними узлами — «связь между звёздами»
+        ctx!.lineWidth = 1.2;
+        for (let i = 0; i < c.nodes.length - 1; i++) {
+          const a = c.nodes[i];
+          const b = c.nodes[i + 1];
+          const segAlpha = alpha * (1 - i / c.nodes.length) * 0.7;
+          ctx!.strokeStyle = `rgba(${c.color},${segAlpha})`;
+          ctx!.beginPath();
+          ctx!.moveTo(a.x, a.y);
+          ctx!.lineTo(b.x, b.y);
+          ctx!.stroke();
+        }
+        // Узлы
         c.nodes.forEach((n, i) => {
           const a = alpha * (1 - i / c.nodes.length);
           ctx!.fillStyle = `rgba(${c.color},${a})`;
           ctx!.beginPath();
-          ctx!.arc(n.x, n.y, Math.max(0.5, 2 - i * 0.1), 0, Math.PI * 2);
+          ctx!.arc(n.x, n.y, Math.max(0.6, 2.6 - i * 0.12), 0, Math.PI * 2);
           ctx!.fill();
         });
       });
@@ -152,10 +163,10 @@ export function CursorSparks() {
       sparks.forEach((s) => {
         s.x += s.vx;
         s.y += s.vy;
-        s.vy += 0.012;
+        s.vy += 0.014;
         s.life--;
         const a = Math.max(0, s.life / s.maxLife);
-        ctx!.fillStyle = `rgba(${s.color},${a * 0.85})`;
+        ctx!.fillStyle = `rgba(${s.color},${a * 0.9})`;
         ctx!.beginPath();
         ctx!.arc(s.x, s.y, s.size * a, 0, Math.PI * 2);
         ctx!.fill();
@@ -168,23 +179,38 @@ export function CursorSparks() {
     }
 
     function start() {
-      if (!raf && isLight() && !document.hidden) {
+      if (!running && isLight() && !document.hidden) {
+        running = true;
+        // сразу несколько комет, чтобы связь была видна сразу
+        if (comets.length === 0) {
+          spawnComet();
+          spawnComet();
+        }
         raf = requestAnimationFrame(frame);
       }
     }
 
+    function stop() {
+      running = false;
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+      ctx!.clearRect(0, 0, width, height);
+      sparks.length = 0;
+      comets.length = 0;
+    }
+
     window.addEventListener("resize", size);
     window.addEventListener("pointermove", onPointerMove, { passive: true });
-    const onVisibility = () => (document.hidden ? (raf && cancelAnimationFrame(raf), (raf = 0)) : start());
+    const onVisibility = () => (document.hidden ? stop() : start());
     document.addEventListener("visibilitychange", onVisibility);
-    const themeObserver = new MutationObserver(() => (isLight() ? start() : (raf && cancelAnimationFrame(raf), (raf = 0))));
+    const themeObserver = new MutationObserver(() => (isLight() ? start() : stop()));
     themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
     size();
-    start();
+    start(); // важно: тема может уже быть light (из localStorage)
 
     return () => {
-      if (raf) cancelAnimationFrame(raf);
+      stop();
       window.removeEventListener("resize", size);
       window.removeEventListener("pointermove", onPointerMove);
       document.removeEventListener("visibilitychange", onVisibility);
