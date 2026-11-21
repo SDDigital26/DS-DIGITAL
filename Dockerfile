@@ -2,6 +2,9 @@
 FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
+# postinstall запускает `prisma generate` — нужны схема и конфиг уже на этом этапе.
+COPY prisma7.config.ts ./
+COPY prisma ./prisma
 RUN npm ci --no-audit --no-fund
 
 FROM node:22-alpine AS builder
