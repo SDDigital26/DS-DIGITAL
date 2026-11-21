@@ -35,15 +35,13 @@ const fetchedAssets = new Set();
 
 /** Переписать абсолютные пути под префикс GitHub Pages. */
 function rewritePaths(html) {
-  return html
-    .replace(/(href|src|action)="\/([^"]*)"/g, (_m, attr, path) => `${attr}="${PREFIX}/${path}"`)
-    .replace(/url\(\/([^)]*)\)/g, (_m, path) => `url(${PREFIX}/${path})`)
-    // next/image: /_next/image?url=%2Fcases%2F... -> прямой файл из public
+  // Сначала next/image -> прямой файл, иначе общее правило превратит
+  // /_next/image?... в /DS-DIGITAL/_next/image?... (и картинка не загрузится).
+  let result = html
     .replace(/src="\/_next\/image\?url=([^"&]*)[^"]*"/g, (_m, encoded) => {
       const path = decodeURIComponent(encoded);
       return `src="${PREFIX}${path}"`;
     })
-    // srcSet у next/image: заменить каждую строку на прямой файл.
     .replace(/srcSet="([^"]*)"/g, (m, value) => {
       if (!value.includes("/_next/image")) return m;
       const first = value.split(",")[0].trim().split(" ")[0];
@@ -52,6 +50,16 @@ function rewritePaths(html) {
       const path = decodeURIComponent(encoded);
       return `srcSet="${PREFIX}${path}"`;
     });
+
+  // Затем все остальные абсолютные пути (CSS, внутренние ссылки, формы).
+  result = result
+    .replace(/(href|src|action)="\/([^"]*)"/g, (m, attr, path) =>
+      path.startsWith(`${PREFIX.replace(/^\//, "")}/`) ? m : `${attr}="${PREFIX}/${path}"`,
+    )
+    .replace(/url\(\/([^)]*)\)/g, (m, path) =>
+      path.startsWith(`${PREFIX.replace(/^\//, "")}/`) ? m : `url(${PREFIX}/${path})`,
+    );
+  return result;
 }
 
 async function downloadCss(url, relativePath) {
