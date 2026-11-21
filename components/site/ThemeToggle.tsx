@@ -9,8 +9,15 @@ export function ThemeToggle() {
   useEffect(() => {
     const stored = localStorage.getItem("ds-theme");
     const isLight = stored === "light";
-    queueMicrotask(() => setLight(isLight));
+    setLight(isLight);
     document.documentElement.dataset.theme = isLight ? "light" : "dark";
+    // Синхронизируем фон .ds сразу при mount
+    queueMicrotask(() => {
+      const ds = document.querySelector('.ds') as HTMLElement;
+      if (ds) {
+        ds.style.background = isLight ? '#ffffff' : 'transparent';
+      }
+    });
   }, []);
 
   function toggle() {
@@ -18,6 +25,13 @@ export function ThemeToggle() {
     setLight(next);
     document.documentElement.dataset.theme = next ? "light" : "dark";
     localStorage.setItem("ds-theme", next ? "light" : "dark");
+    // Синхронизируем фон .ds при клике
+    queueMicrotask(() => {
+      const ds = document.querySelector('.ds') as HTMLElement;
+      if (ds) {
+        ds.style.background = next ? '#ffffff' : 'transparent';
+      }
+    });
   }
 
   return (

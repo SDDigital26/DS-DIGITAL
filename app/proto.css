@@ -21,8 +21,8 @@
     "Segoe UI", Roboto, sans-serif;
   line-height: 1.5;
   color: var(--text);
-  /* Фон остаётся на body: слой молнии рисуется над ним, но под контентом. */
-  background: transparent;
+  /* Фон убираем — светлый/тёмный задаётся через body/data-theme */
+  background: #ffffff;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -35,8 +35,10 @@ html[data-theme="light"] .ds {
   --surface: #ffffff;
   --text: #0d1424;
   --sec: #47536b;
-  --line: rgba(23, 107, 255, 0.25);
+  --line: rgba(23, 107, 255, 0.22);
   color-scheme: light;
+  /* Фон прототипа на светлой теме — белый, чтобы кольца и текст читались четко */
+  background: #ffffff;
 }
 
 .ds > main,
@@ -154,7 +156,7 @@ html[data-theme="light"] .ds {
   font-size: 16px;
   border: 1px solid var(--line);
   color: var(--text);
-  background: transparent;
+  background: #ffffff;
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
   text-align: center;
@@ -1342,7 +1344,7 @@ html[data-cookie-banner="open"] .ai {
   padding: 0 18px;
   border: 1px solid rgba(168, 180, 201, 0.22);
   border-radius: 10px;
-  background: transparent;
+  background: #ffffff;
   color: var(--text);
   font: inherit;
   font-size: 13px;
