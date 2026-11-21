@@ -6,6 +6,7 @@ import { SITE } from "@/lib/content/site";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Lightning } from "@/components/site/Lightning";
+import { CursorSparks } from "@/components/site/CursorSparks";
 import { AiConsultant } from "@/components/site/AiConsultant";
 import { CookieBanner } from "@/components/site/CookieBanner";
 import { getSiteSettings } from "@/lib/site-settings";
@@ -76,8 +77,10 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} className="h-full antialiased" data-effects={settings.effectsMode}>
       <body className="min-h-full">
-        {/* Молния — вне .ds, чтобы overflow-x: clip не влиял на fixed-слой */}
+        {/* Молния (тёмная тема) и искры+кометы (светлая тема) — вне .ds,
+            чтобы overflow-x: clip не влиял на fixed-слой */}
         <Lightning mode={settings.effectsMode} />
+        <CursorSparks />
         {/* .ds — скоуп стилей прототипа: не задевает Tailwind-классы внутренних страниц */}
         <div className="ds">
           <a className="skip" href="#main">

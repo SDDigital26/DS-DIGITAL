@@ -2564,3 +2564,156 @@ html[data-theme="light"] .ds header.nav nav a,
 html[data-theme="light"] .ds .mobile-menu a {
   color: #47536b;
 }
+
+/* ---------- Технологии / Почему (были тёмные) ---------- */
+html[data-theme="light"] .ds .tech-group,
+html[data-theme="light"] .ds .why-item {
+  background: #ffffff;
+  border-color: rgba(23, 107, 255, 0.16);
+  box-shadow: 0 6px 20px rgba(13, 20, 36, 0.05);
+}
+
+html[data-theme="light"] .ds .tech-group h3 {
+  color: #176bff;
+}
+
+html[data-theme="light"] .ds .tech-group li {
+  color: #374151;
+}
+
+html[data-theme="light"] .ds .tech-group li::before {
+  color: #8b5cff;
+}
+
+html[data-theme="light"] .ds .why-item h3 {
+  color: #0d1424;
+}
+
+html[data-theme="light"] .ds .why-item p {
+  color: #47536b;
+}
+
+/* ---------- Код в hero (term) — тёмный и читаемый ---------- */
+html[data-theme="light"] .ds .term {
+  opacity: 0.7;
+}
+
+html[data-theme="light"] .ds .term pre {
+  color: #1557c0;
+  text-shadow: none;
+}
+
+html[data-theme="light"] .ds .term .c { color: #6b7a99; }
+html[data-theme="light"] .ds .term .p { color: #176bff; }
+html[data-theme="light"] .ds .term .o { color: #0a9e63; }
+html[data-theme="light"] .ds .term .d { color: #47536b; }
+html[data-theme="light"] .ds .term .k { color: #7c3aed; }
+html[data-theme="light"] .ds .term .s { color: #0e7490; }
+
+html[data-theme="light"] .ds .cr {
+  background: #176bff;
+  box-shadow: none;
+}
+
+/* ---------- Другие тёмные блоки на светлом ---------- */
+html[data-theme="light"] .ds .proj,
+html[data-theme="light"] .ds .rev,
+html[data-theme="light"] .ds .karma-shots figure,
+html[data-theme="light"] .ds .panel,
+html[data-theme="light"] .ds .calc .panel,
+html[data-theme="light"] .ds .faq details.q {
+  background: #ffffff;
+  border-color: rgba(23, 107, 255, 0.16);
+}
+
+html[data-theme="light"] .ds .steps li {
+  background: #ffffff;
+  border-color: rgba(23, 107, 255, 0.16);
+  box-shadow: 0 6px 20px rgba(13, 20, 36, 0.05);
+}
+
+html[data-theme="light"] .ds .steps .num {
+  color: #176bff;
+}
+
+html[data-theme="light"] .ds .steps h3 {
+  color: #0d1424;
+}
+
+html[data-theme="light"] .ds .steps p {
+  color: #47536b;
+}
+
+html[data-theme="light"] .ds .karma-features li {
+  background: #f0f4fb;
+  border-color: rgba(23, 107, 255, 0.16);
+  color: #374151;
+}
+
+html[data-theme="light"] .ds section.lead {
+  background: #f0f4fb;
+}
+
+html[data-theme="light"] .ds .rev p,
+html[data-theme="light"] .ds .rev small,
+html[data-theme="light"] .ds .panel label,
+html[data-theme="light"] .ds details.q p,
+html[data-theme="light"] .ds .steps p {
+  color: #47536b;
+}
+
+/* ---------- AI-окно — светлое в светлой теме ---------- */
+html[data-theme="light"] .ai-panel {
+  background: #ffffff;
+  border-color: rgba(23, 107, 255, 0.2);
+  box-shadow: 0 24px 70px rgba(13, 20, 36, 0.18);
+}
+
+html[data-theme="light"] .ai-head,
+html[data-theme="light"] .ai-form {
+  border-color: rgba(13, 20, 36, 0.1);
+}
+
+html[data-theme="light"] .ai-head strong,
+html[data-theme="light"] .ai-msg {
+  color: #0d1424;
+}
+
+html[data-theme="light"] .ai-head span,
+html[data-theme="light"] .ai-note,
+html[data-theme="light"] .ai-msg.muted {
+  color: #47536b;
+}
+
+html[data-theme="light"] .ai-close {
+  color: #47536b;
+}
+
+html[data-theme="light"] .ai-msg.assistant {
+  background: #f0f4fb;
+  border-color: rgba(23, 107, 255, 0.14);
+}
+
+html[data-theme="light"] .ai-msg.user {
+  background: linear-gradient(135deg, #176bff, #8b5cff);
+  color: #ffffff;
+}
+
+html[data-theme="light"] .ai-form input {
+  background: #f5f7fb;
+  color: #0d1424;
+  border-color: rgba(13, 20, 36, 0.16);
+}
+
+html[data-theme="light"] .ai-form input:focus {
+  border-color: #176bff;
+}
+
+html[data-theme="light"] .ai-form button {
+  background: #176bff;
+  color: #ffffff;
+}
+
+html[data-theme="light"] .ai-note a {
+  color: #176bff;
+}

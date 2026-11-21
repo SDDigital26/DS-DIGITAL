@@ -9,10 +9,10 @@ export function ThemeToggle() {
   useEffect(() => {
     const stored = localStorage.getItem("ds-theme");
     const isLight = stored === "light";
-    setLight(isLight);
     document.documentElement.dataset.theme = isLight ? "light" : "dark";
-    // Синхронизируем фон .ds сразу при mount
+    // Синхронизируем состояние и фон .ds асинхронно (без каскадного ре-рендера)
     queueMicrotask(() => {
+      setLight(isLight);
       const ds = document.querySelector('.ds') as HTMLElement;
       if (ds) {
         ds.style.background = isLight ? '#ffffff' : 'transparent';
