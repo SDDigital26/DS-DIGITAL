@@ -216,11 +216,24 @@ export function GhostCode() {
       }
     }
 
+    // Пауза, когда основная область не видна (ТЗ п.3 производительность).
+    let visible = true;
+    const visibility = new IntersectionObserver(
+      ([entry]) => {
+        visible = entry?.isIntersecting ?? true;
+      },
+      { threshold: 0 },
+    );
+    visibility.observe(main);
+
     // 110 мс вместо 70 — меньше перерисовок DOM, плавнее прокрутка.
-    const timer = window.setInterval(tick, 110);
+    const timer = window.setInterval(() => {
+      if (visible) tick();
+    }, 110);
 
     return () => {
       window.clearInterval(timer);
+      visibility.disconnect();
       host.remove();
     };
   }, []);

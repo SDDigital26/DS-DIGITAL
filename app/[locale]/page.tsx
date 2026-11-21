@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { PUBLIC_TESTIMONIAL_WHERE } from "@/lib/validation/testimonial";
 import { GhostCode } from "@/components/site/GhostCode";
 import { OrbitCanvas } from "@/components/site/OrbitCanvas";
+import { DataGraph } from "@/components/site/DataGraph";
 import { Terminal } from "@/components/site/Terminal";
 import { ServiceCards } from "@/components/site/ServiceCards";
 import { Calculator } from "@/components/site/Calculator";
@@ -302,6 +303,7 @@ export default async function HomePage({
               </div>
             ))}
           </div>
+          <DataGraph locale={l} />
         </div>
       </section>
 

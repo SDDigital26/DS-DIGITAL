@@ -165,6 +165,16 @@ export function Lightning({ mode = "full" }: { mode?: "full" | "lite" | "static"
     resize();
     window.addEventListener("resize", resize);
 
+    // Пауза, когда вкладка неактивна (ТЗ п.3) — не держим rAF в фоне.
+    document.addEventListener("visibilitychange", onVisibility);
+    function onVisibility() {
+      if (document.hidden && frame) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+        running = false;
+      }
+    }
+
     if (!touch) {
       window.addEventListener("pointermove", onPointerMove, { passive: true });
       document.addEventListener("pointerleave", onPointerLeave);
@@ -178,6 +188,7 @@ export function Lightning({ mode = "full" }: { mode?: "full" | "lite" | "static"
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("pointerleave", onPointerLeave);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [mode]);
 

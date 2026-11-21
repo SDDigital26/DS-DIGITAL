@@ -118,12 +118,12 @@ export function OrbitCanvas() {
         }
         g!.strokeStyle = gr;
         if (q > 1) {
-          g!.globalAlpha = (light ? 0.05 : 0.1) * rg.al;
-          g!.lineWidth = 14;
+          g!.globalAlpha = (light ? 0.07 : 0.16) * rg.al;
+          g!.lineWidth = 16;
           g!.stroke();
         }
-        g!.globalAlpha = (light ? 0.5 : 0.8) * rg.al;
-        g!.lineWidth = i === 0 ? 2 : 1.2;
+        g!.globalAlpha = (light ? 0.62 : 1) * rg.al;
+        g!.lineWidth = i === 0 ? 2.6 : 1.6;
         g!.stroke();
       });
 
