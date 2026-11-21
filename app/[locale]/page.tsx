@@ -4,7 +4,7 @@ import { SITE } from "@/lib/content/site";
 import { db } from "@/lib/db";
 import { PUBLIC_TESTIMONIAL_WHERE } from "@/lib/validation/testimonial";
 import { GhostCode } from "@/components/site/GhostCode";
-import { HeroOrbit } from "@/components/site/HeroOrbit";
+import { OrbitCanvas } from "@/components/site/OrbitCanvas";
 import { Terminal } from "@/components/site/Terminal";
 import { ServiceCards } from "@/components/site/ServiceCards";
 import { Calculator } from "@/components/site/Calculator";
@@ -15,6 +15,18 @@ import { getSiteSettings, type SiteSettings } from "@/lib/site-settings";
 
 // Проекты, отзывы и FAQ — из БД: правки в админке применяются без деплоя.
 export const instant = false;
+
+/** Как в прототипе: последние 2 слова заголовка — градиентный акцент. */
+function heroTitle(title: string) {
+  const words = title.split(" ");
+  const k = Math.min(2, Math.max(0, words.length - 1));
+  return (
+    <>
+      {words.slice(0, words.length - k).join(" ")}{" "}
+      <em>{words.slice(words.length - k).join(" ")}</em>
+    </>
+  );
+}
 
 type HomeProject = {
   id: string;
@@ -135,12 +147,12 @@ export default async function HomePage({
 
       <div className="hero">
         <div className="stars" />
-        <HeroOrbit />
+        <OrbitCanvas />
         <Terminal />
 
         <div className="scopy">
           <p className="stag">{t.hero.tag}</p>
-          <h1>{t.hero.title}</h1>
+          <h1>{heroTitle(t.hero.title)}</h1>
           <p className="sub">{t.hero.sub}</p>
           <div className="cta">
             <a className="sbtn p" href="#contact">

@@ -133,12 +133,12 @@ const RU: SiteContent = {
     letsTalk: "Обсудить проект",
   },
   hero: {
-    tag: "BUILD. AUTOMATE. SCALE.",
-    title: "Цифровые продукты, которые двигают бизнес вперёд",
-    sub: "Разрабатываем сайты, веб-приложения, CRM, Telegram-ботов и ИИ-решения, которые помогают бизнесу расти.",
+    tag: "Digital Development Studio",
+    title: "Создаём цифровые продукты, которые двигают бизнес вперёд",
+    sub: "Разрабатываем сайты, веб-приложения, CRM и решения на базе ИИ, которые помогают бизнесу расти.",
     start: "Начать проект",
     explore: "Смотреть услуги",
-    scroll: "Листайте вниз",
+    scroll: "BUILD. AUTOMATE. SCALE.",
   },
   services: {
     title: "Что мы создаём",
@@ -377,12 +377,12 @@ const EN: SiteContent = {
     letsTalk: "Let’s talk",
   },
   hero: {
-    tag: "BUILD. AUTOMATE. SCALE.",
+    tag: "Digital Development Studio",
     title: "Building digital experiences that move business forward",
-    sub: "We design and develop websites, web apps, CRM systems, Telegram bots and AI solutions that help businesses grow.",
+    sub: "We design and develop websites, web applications, CRM systems and AI-powered solutions that help businesses grow.",
     start: "Start a project",
     explore: "Explore services",
-    scroll: "Scroll down",
+    scroll: "BUILD. AUTOMATE. SCALE.",
   },
   services: {
     title: "What we build",
