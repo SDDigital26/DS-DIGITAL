@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { defaultLocale, isLocale, locales, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { SITE } from "@/lib/content/site";
@@ -91,6 +92,7 @@ export default async function LocaleLayout({
         </div>
         {settings.aiEnabled ? <AiConsultant locale={locale} /> : null}
         <CookieBanner locale={locale} />
+        <SpeedInsights />
       </body>
     </html>
   );
