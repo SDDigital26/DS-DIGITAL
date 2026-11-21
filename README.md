@@ -34,7 +34,7 @@ BUILD. AUTOMATE. SCALE.
 
 - Раздел `/ru/blog`, `/en/blog` и статьи `/{locale}/blog/{slug}`; контент хранится в `Article`/`ArticleTranslation` и правится в `/admin/articles` **без программиста** (RU/EN, статус, FAQ, SEO-поля). Пункт «SEO-статьи» в меню админки.
 - Первые 5 статей (RU+EN): `site-development-cost`, `how-to-choose-a-developer`, `crm-for-small-business`, `ai-solutions-for-business`, `telegram-bot-for-leads`. Сид: `npm run seed:articles`. Все факты — только с сайта; там, где факта нет, стоит пометка «Проверить перед публикацией».
-- Статическая витрина для GitHub Pages: `npm run pages:build` → `docs/` ( Pages включён на `main:/docs`). На Pages нет API/БД, поэтому JS убирается, формы и админка работают только на полной версии.
+- Статическая витрина для GitHub Pages: `npm run pages:build` → `docs/`; Pages включён на `main:/docs`, адрес **https://sddigital26.github.io/DS-DIGITAL/** (проверено: `/ru/` → 200, KarmaRent на месте). Репозиторий публичный (GitHub Pages недоступен для приватных репозиториев на free-плане). На Pages нет API/БД, поэтому JS убирается, формы и админка работают только на полной версии.
 - FAQ Articles: `Article` + `ArticleTranslation` (миграция `add_articles`). В sitemap статьи добавлены с hreflang только по реально существующим переводам. На странице статьи — `Article` + `FAQPage` JSON-LD, canonical/hreflang/OG.
 
 ### Telegram-бот для заявок (21.11.2026)
