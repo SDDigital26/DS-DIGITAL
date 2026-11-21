@@ -12,13 +12,14 @@ export type AdminNavItem = {
 export const ADMIN_NAV: AdminNavItem[] = [
   { href: "/admin", label: "Дашборд", permission: "dashboard" },
   { href: "/admin/leads", label: "Заявки", permission: "leads" },
-  { href: "/admin/projects", label: "Проекты", permission: "content", soon: true },
+  { href: "/admin/projects", label: "Проекты", permission: "content" },
   { href: "/admin/services", label: "Услуги", permission: "content" },
   { href: "/admin/faq", label: "FAQ", permission: "content" },
   { href: "/admin/testimonials", label: "Отзывы", permission: "content" },
+  { href: "/admin/calculator", label: "Калькулятор", permission: "settings" },
   { href: "/admin/pages", label: "Контент", permission: "content", soon: true },
   { href: "/admin/media", label: "Медиа", permission: "media", soon: true },
   { href: "/admin/seo", label: "SEO", permission: "seo", soon: true },
-  { href: "/admin/settings", label: "Настройки", permission: "settings", soon: true },
+  { href: "/admin/settings", label: "Настройки", permission: "settings" },
   { href: "/admin/users", label: "Пользователи", permission: "users", soon: true },
 ];

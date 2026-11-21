@@ -203,7 +203,7 @@ model Lead {
   service        String?
   budget         String?
   description    String    @db.Text
-  source         String    @default("form") // form | calculator | ai | contact
+  source         String    @default("form") // form | calculator | ai-consultant | contact
   status         String    @default("New") // New | In Progress | Qualified | Won | Lost
   // UTM / кампании (Док.2 §14.1)
   utmSource      String?
@@ -275,7 +275,7 @@ model NotificationLog {
 
 model AiConversation {
   id        String    @id @default(cuid())
-  sessionKey String // аноимный идентификатор сессии
+  sessionKey String   @unique // SHA-256 хеш HttpOnly идентификатора сессии
   locale    String    @default("en")
   leadId    String?
   createdAt DateTime  @default(now())
@@ -284,7 +284,6 @@ model AiConversation {
   messages  AiMessage[]
   lead      Lead?      @relation(fields: [leadId], references: [id], onDelete: SetNull)
 
-  @@index([sessionKey])
   @@index([expiresAt])
 }
 

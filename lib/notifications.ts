@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { isEmailConfigured, sendEmail } from "@/lib/integrations/email";
-import { isTelegramConfigured, sendTelegram } from "@/lib/integrations/telegram";
+import { isTelegramAvailable, sendTelegram } from "@/lib/integrations/telegram";
+import { getTelegramConfig } from "@/lib/integrations/telegram-config";
 
 /**
  * Очередь уведомлений о заявках на таблице NotificationLog (Док.2 §14.3).
@@ -24,13 +25,20 @@ export type LeadNotificationData = {
 /** Поставить уведомления в очередь (вызывается после успешного создания лида). */
 export async function enqueueLeadNotifications(data: LeadNotificationData): Promise<void> {
   const channels = ["email", "telegram"] as const;
+  const [telegramReady, telegramConfig] = await Promise.all([
+    isTelegramAvailable(),
+    getTelegramConfig(),
+  ]);
 
   // Фиксируем ВСЕ каналы: настроенный — pending (будет отправлен),
-  // ненастроенный — failed с причиной (чтобы в CRM было видно, что команда
+  // ненастроенный/выключенный — failed с причиной (в CRM видно, что команда
   // не получила уведомление). Заявка при этом уже сохранена.
   await db.notificationLog.createMany({
     data: channels.map((channel) => {
-      const configured = channel === "email" ? isEmailConfigured() : isTelegramConfigured();
+      const configured =
+        channel === "email"
+          ? isEmailConfigured()
+          : telegramReady && telegramConfig.notifyOnLead;
       return {
         leadId: data.leadId,
         channel,

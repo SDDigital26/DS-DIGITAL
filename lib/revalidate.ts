@@ -21,3 +21,19 @@ export function revalidateFaq() {
   revalidatePath("/ru/faq");
   revalidatePath("/en/faq");
 }
+
+export function revalidateCalculator() {
+  revalidatePath("/ru");
+  revalidatePath("/en");
+  revalidatePath("/ru/calculator");
+  revalidatePath("/en/calculator");
+}
+
+export function revalidateProject(slug?: string) {
+  revalidatePath("/ru/projects");
+  revalidatePath("/en/projects");
+  if (slug) {
+    revalidatePath(`/ru/projects/${slug}`);
+    revalidatePath(`/en/projects/${slug}`);
+  }
+}

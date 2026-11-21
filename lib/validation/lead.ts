@@ -20,7 +20,7 @@ export const leadSchema = z
       .trim()
       .min(10, "description too short")
       .max(5000, "description too long"),
-    source: z.enum(["form", "calculator", "ai", "contact"]).default("form"),
+    source: z.enum(["form", "calculator", "ai", "ai-consultant", "contact"]).default("form"),
     // UTM / кампании
     utmSource: z.string().trim().max(200).optional(),
     utmMedium: z.string().trim().max(200).optional(),

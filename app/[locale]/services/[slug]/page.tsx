@@ -6,6 +6,7 @@ import { connection } from "next/server";
 import { defaultLocale, isLocale, locales, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { db } from "@/lib/db";
+import { ContactForm } from "@/components/site/ContactForm";
 
 // Данные из БД + connection(): правки в админке применяются без деплоя (ТЗ §17).
 // instant = false — единственный совместимый с cacheComponents способ
@@ -23,8 +24,7 @@ const loadService = cache(async (locale: Locale, slug: string) => {
   });
   if (!service) return null;
 
-  const translation =
-    service.translations.find((t) => t.locale === locale) ?? service.translations[0] ?? null;
+  const translation = service.translations.find((t) => t.locale === locale) ?? null;
 
   return {
     slug: service.slug,
@@ -37,10 +37,12 @@ type Loaded = NonNullable<Awaited<ReturnType<typeof loadService>>>;
 
 function alternatesFor(loaded: Loaded, locale: Locale): Metadata["alternates"] {
   const languages: Record<string, string> = {};
+  const available = loaded.availableLocales.filter(isLocale);
   for (const l of loaded.availableLocales) {
     if (isLocale(l)) languages[l] = `/${l}/services/${loaded.slug}`;
   }
-  if (!languages.x_default) languages["x-default"] = `/${defaultLocale}/services/${loaded.slug}`;
+  const defaultAlt = available.includes(defaultLocale) ? defaultLocale : available[0];
+  if (defaultAlt) languages["x-default"] = `/${defaultAlt}/services/${loaded.slug}`;
   return { canonical: `/${locale}/services/${loaded.slug}`, languages };
 }
 
@@ -78,10 +80,20 @@ export default async function ServicePage({
 
   const t = loaded.translation;
   const benefits = Array.isArray(t.benefits) ? (t.benefits as string[]) : [];
+  const sectionLabels = l === "ru"
+    ? { breadcrumb: "Главная", problem: "Задача", solution: "Подход к решению", benefits: "Что входит", request: "Обсудить задачу" }
+    : { breadcrumb: "Home", problem: "The challenge", solution: "Approach", benefits: "What’s included", request: "Discuss your project" };
 
   return (
     <>
       <div className="mx-auto max-w-7xl px-4 pb-8 pt-16 sm:px-6">
+        <nav aria-label={l === "ru" ? "Навигационная цепочка" : "Breadcrumb"} className="mb-6 text-sm text-secondary">
+          <Link href={`/${l}`}>{sectionLabels.breadcrumb}</Link>
+          <span aria-hidden="true"> / </span>
+          <Link href={`/${l}/services`}>{dict.nav.services}</Link>
+          <span aria-hidden="true"> / </span>
+          <span aria-current="page" className="text-white">{t.title}</span>
+        </nav>
         <Link href={`/${l}/services`} className="text-sm text-secondary hover:text-white">
           ← {dict.nav.services}
         </Link>
@@ -93,21 +105,21 @@ export default async function ServicePage({
 
       {t.problem ? (
         <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-          <h2 className="text-2xl font-semibold">Проблема</h2>
+          <h2 className="text-2xl font-semibold">{sectionLabels.problem}</h2>
           <p className="mt-3 max-w-3xl whitespace-pre-wrap text-secondary">{t.problem}</p>
         </section>
       ) : null}
 
       {t.solution ? (
         <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-          <h2 className="text-2xl font-semibold">Решение</h2>
+          <h2 className="text-2xl font-semibold">{sectionLabels.solution}</h2>
           <p className="mt-3 max-w-3xl whitespace-pre-wrap text-secondary">{t.solution}</p>
         </section>
       ) : null}
 
       {benefits.length > 0 ? (
         <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
-          <h2 className="text-2xl font-semibold">Преимущества</h2>
+          <h2 className="text-2xl font-semibold">{sectionLabels.benefits}</h2>
           <ul className="mt-4 grid gap-3 sm:grid-cols-2">
             {benefits.map((benefit) => (
               <li
@@ -126,12 +138,17 @@ export default async function ServicePage({
           <h2 className="text-2xl font-semibold">{dict.home.ctaPrimary}</h2>
           <p className="mt-2 text-sm text-secondary">{dict.calculator.disclaimer}</p>
           <Link
-            href={`/${l}/contact`}
+            href="#lead-form"
             className="mt-6 inline-block rounded-full bg-accent px-6 py-3 font-medium text-white hover:bg-accent/85"
           >
-            {dict.nav.letsTalk}
+            {sectionLabels.request}
           </Link>
         </div>
+      </section>
+
+      <section id="lead-form" className="mx-auto max-w-7xl scroll-mt-24 px-4 pb-16 sm:px-6">
+        <h2 className="mb-6 text-2xl font-semibold">{sectionLabels.request}</h2>
+        <ContactForm key={`${l}-${t.title}`} locale={l} defaultService={t.title} />
       </section>
 
       {loaded.availableLocales.length > 1 ? (

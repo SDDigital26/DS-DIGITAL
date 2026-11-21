@@ -2,11 +2,20 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { defaultLocale, isLocale, locales, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
+import { SITE } from "@/lib/content/site";
+import { SiteHeader } from "@/components/site/SiteHeader";
+import { SiteFooter } from "@/components/site/SiteFooter";
+import { Lightning } from "@/components/site/Lightning";
+import { AiConsultant } from "@/components/site/AiConsultant";
+import { CookieBanner } from "@/components/site/CookieBanner";
+import { getSiteSettings } from "@/lib/site-settings";
 import "../globals.css";
+import "../proto.css";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
+// Layout читает изменяемые настройки из БД; публичные страницы должны рендериться на запрос.
+export const instant = false;
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -31,6 +40,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const dict = getDictionary(isLocale(locale) ? locale : defaultLocale);
+  const settings = await getSiteSettings();
 
   return {
     metadataBase: new URL(SITE_URL),
@@ -40,6 +50,8 @@ export async function generateMetadata({
     },
     description: dict.home.heroText,
     alternates: alternatesFor(isLocale(locale) ? locale : defaultLocale),
+    // noindex включается в кабинете, пока домен не согласован (ТЗ §26).
+    ...(settings.noindex ? { robots: { index: false, follow: false } } : {}),
     openGraph: {
       siteName: "DS DIGITAL",
       type: "website",
@@ -58,14 +70,27 @@ export default async function LocaleLayout({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
-  const dict = getDictionary(locale);
+  const t = SITE[locale];
+  const settings = await getSiteSettings();
 
   return (
-    <html lang={locale} className="h-full antialiased">
-      <body className="flex min-h-full flex-col">
-        <Header locale={locale} dict={dict} />
-        <main className="flex-1">{children}</main>
-        <Footer locale={locale} dict={dict} />
+    <html lang={locale} className="h-full antialiased" data-effects={settings.effectsMode}>
+      <body className="min-h-full">
+        {/* Молния — вне .ds, чтобы overflow-x: clip не влиял на fixed-слой */}
+        <Lightning mode={settings.effectsMode} />
+        {/* .ds — скоуп стилей прототипа: не задевает Tailwind-классы внутренних страниц */}
+        <div className="ds">
+          <a className="skip" href="#main">
+            {t.skip}
+          </a>
+          <SiteHeader locale={locale} />
+          <main id="main" className="flex-1">
+            {children}
+          </main>
+          <SiteFooter locale={locale} />
+        </div>
+        {settings.aiEnabled ? <AiConsultant locale={locale} /> : null}
+        <CookieBanner locale={locale} />
       </body>
     </html>
   );

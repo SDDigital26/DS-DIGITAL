@@ -12,7 +12,10 @@ services:
     environment:
       NODE_ENV: production
       NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3001}
-      DATABASE_URL: postgresql://ds:ds_pass@db:5432/ds_digital
+      # Отдельная переменная для контейнера: внутри compose хост БД — `db:5432`,
+      # а не `localhost:5433` (тот нужен только для миграций с хоста).
+      # Для Supabase задайте DATABASE_URL_DOCKER в .env (см. .env.example).
+      DATABASE_URL: ${DATABASE_URL_DOCKER:-postgresql://ds:ds_pass@db:5432/ds_digital}
       # Уведомления и служебные секреты — из .env (не коммитится, ТЗ §21.5).
       # Пусто = провайдер не настроен, уведомления помечаются failed, лид сохраняется.
       SMTP_HOST: ${SMTP_HOST:-}

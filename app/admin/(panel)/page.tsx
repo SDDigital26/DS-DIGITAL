@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requirePagePermission } from "@/lib/permissions";
 import { db } from "@/lib/db";
+import { AiStatusBadge } from "@/components/admin/AiStatusBadge";
 
 // Динамический раздел: данные из cookies/БД (Next 16 cacheComponents)
 export const instant = false;
@@ -47,12 +48,15 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-semibold">Дашборд</h1>
           <p className="mt-1 text-sm text-secondary">Сводка по заявкам DS DIGITAL</p>
         </div>
-        <Link
-          href="/admin/leads"
-          className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent/85"
-        >
-          Все заявки
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <AiStatusBadge />
+          <Link
+            href="/admin/leads"
+            className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent/85"
+          >
+            Все заявки
+          </Link>
+        </div>
       </header>
 
       <section>

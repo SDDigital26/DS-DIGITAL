@@ -14,7 +14,14 @@ import { PrismaClient } from "@/lib/generated/prisma/client";
 const connectionString =
   process.env.DATABASE_URL ?? "postgresql://placeholder:placeholder@localhost:5432/ds_digital";
 
-const adapter = new PrismaPg({ connectionString });
+// Supabase-пулер в этой сети отдаёт самоподписанный сертификат: явно включаем
+// TLS без проверки цепочки (аналог `sslmode=require` с rejectUnauthorized=false).
+// Для локального PostgreSQL флаг не нужен и не включается.
+const isSupabase = /supabase\.com/i.test(connectionString);
+const adapter = new PrismaPg({
+  connectionString,
+  ...(isSupabase ? { ssl: { rejectUnauthorized: false } } : {}),
+});
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 

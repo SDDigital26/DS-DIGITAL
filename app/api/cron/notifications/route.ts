@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { processDueNotifications } from "@/lib/notifications";
+import { db } from "@/lib/db";
 
 /**
  * POST /api/cron/notifications — обработка очереди уведомлений.
@@ -18,8 +19,11 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const expiredAiSessions = await db.aiConversation.deleteMany({
+      where: { expiresAt: { lte: new Date() } },
+    });
     const result = await processDueNotifications();
-    return NextResponse.json({ ok: true, ...result });
+    return NextResponse.json({ ok: true, expiredAiSessions: expiredAiSessions.count, ...result });
   } catch {
     return NextResponse.json({ error: "processing failed" }, { status: 500 });
   }
