@@ -526,13 +526,21 @@ html[data-theme="light"] .ds .hero .sbtn:not(.p) {
 }
 
 .ds .scard:hover .bar,
+.ds .scard:focus-visible .bar,
 .ds .scard.on .bar {
-  animation: ds-grow 1.1s ease forwards;
+  /* Пока мышь на плашке — полоса повторяет рост, а не замирает после одного прохода. */
+  animation: ds-grow 1.4s ease-in-out infinite;
 }
 
 @keyframes ds-grow {
-  to {
+  0% {
+    transform: scaleX(0);
+    opacity: 0.4;
+  }
+  70%,
+  100% {
     transform: scaleX(1);
+    opacity: 1;
   }
 }
 
@@ -628,8 +636,23 @@ body.hero-off .ds .ring {
   pointer-events: none;
 }
 
-.ds .scard:hover::after {
+.ds .scard:hover::after,
+.ds .scard:focus-visible::after {
   opacity: 1;
+  /* Пока курсор на плашке — подсветка дышит, а не мигает один раз. */
+  animation: card-glow 2.4s ease-in-out infinite;
+}
+
+@keyframes card-glow {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
 }
 
 /* Мини-визуализации в карточках */

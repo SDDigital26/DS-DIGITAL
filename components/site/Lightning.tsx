@@ -36,7 +36,7 @@ export function Lightning({ mode = "full" }: { mode?: "full" | "lite" | "static"
     let frame = 0;
 
     function resize() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       width = window.innerWidth;
       height = window.innerHeight;
       canvas.width = Math.round(width * dpr);

@@ -56,7 +56,10 @@ export function GhostCode() {
       (nav.hardwareConcurrency || 8) <= 4 ||
       (nav.deviceMemory || 8) <= 2 ||
       Boolean(nav.connection?.saveData);
-    const MAX = low ? 1 : window.innerWidth < 760 ? 2 : 3;
+    // На тач/слабых устройствах не гоняем DOM-анимацию — заметно тормозит прокрутку.
+    const fine = window.matchMedia("(pointer: fine)").matches;
+    if (low || !fine) return;
+    const MAX = 2;
     const kinds = ["fade", "erase", "glitch"] as const;
     const ghosts: Ghost[] = [];
     let nextSpawn = Date.now() + 700;
@@ -213,7 +216,8 @@ export function GhostCode() {
       }
     }
 
-    const timer = window.setInterval(tick, 70);
+    // 110 мс вместо 70 — меньше перерисовок DOM, плавнее прокрутка.
+    const timer = window.setInterval(tick, 110);
 
     return () => {
       window.clearInterval(timer);
