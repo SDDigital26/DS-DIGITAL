@@ -78,32 +78,45 @@ export default async function ProjectsPage({
             : "Case studies are published only for projects that actually exist."}
         </p>
       ) : (
-        <div className="mt-10 grid gap-6 lg:grid-cols-2">
+        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Компактные карточки: описание свёрнуто, чтобы много кейсов не растягивало страницу. */}
           {projects.map((project) => (
-            <Link
+            <article
               key={project.id}
-              href={`/${l}/projects/${project.slug}`}
-              className="group flex flex-col gap-4 rounded-2xl border border-white/10 bg-surface/60 p-6 transition-colors hover:border-violet"
+              className="group rounded-xl border border-white/10 bg-surface/50 p-4 transition-all hover:-translate-y-1 hover:border-violet"
             >
-              <div>
-                <span className="text-xs uppercase tracking-wider text-cyan">
-                  {project.category || "Project"}
-                </span>
-                <h2 className="mt-2 text-2xl font-semibold group-hover:text-cyan">
-                  {project.title}
-                </h2>
-                <p className="mt-3 text-secondary">{project.summary}</p>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <span className="text-[10px] uppercase tracking-wider text-cyan">
+                    {project.category || "Project"}
+                  </span>
+                  <h2 className="mt-1 truncate text-lg font-semibold group-hover:text-cyan">
+                    {project.title}
+                  </h2>
+                </div>
               </div>
-              {project.features.length > 0 ? (
-                <ul className="flex flex-wrap gap-2 text-xs text-secondary">
-                  {project.features.slice(0, 5).map((feature) => (
-                    <li key={feature} className="rounded-full border border-white/10 px-3 py-1">
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </Link>
+              <details className="mt-2 text-sm text-secondary">
+                <summary className="cursor-pointer text-link">
+                  {l === "ru" ? "Подробнее" : "Details"}
+                </summary>
+                <p className="mt-2">{project.summary}</p>
+                {project.features.length > 0 ? (
+                  <ul className="mt-2 flex flex-wrap gap-1.5">
+                    {project.features.slice(0, 5).map((feature) => (
+                      <li key={feature} className="rounded-full border border-white/10 px-2 py-0.5 text-xs">
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </details>
+              <Link
+                href={`/${l}/projects/${project.slug}`}
+                className="mt-3 inline-block text-xs text-link hover:text-cyan"
+              >
+                {l === "ru" ? "Открыть кейс" : "Open case"} →
+              </Link>
+            </article>
           ))}
         </div>
       )}

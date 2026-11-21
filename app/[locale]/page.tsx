@@ -29,7 +29,7 @@ async function loadProjects(locale: Locale): Promise<HomeProject[]> {
   const projects = await db.project.findMany({
     where: { published: true },
     orderBy: [{ sort: "asc" }, { createdAt: "desc" }],
-    take: 6,
+    take: 3,
     include: { translations: true },
   });
 

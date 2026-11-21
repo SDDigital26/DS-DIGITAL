@@ -40,6 +40,28 @@ html {
   color-scheme: dark;
 }
 
+/* Светлая тема (опция пользователя). Тёмная остаётся по умолчанию. */
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --white: #0d1424;
+  --text-secondary: #47536b;
+  --accent-blue-text: #1d4ed8;
+}
+
+html[data-theme="light"] body {
+  background: var(--bg);
+  color: var(--white);
+}
+
+/* Инверсия «белого текста» на тёмных плашках светлой темы */
+html[data-theme="light"] .sbtn.p,
+html[data-theme="light"] .ai-open,
+html[data-theme="light"] .bg-accent {
+  color: #ffffff;
+}
+
 body {
   background: var(--bg);
   color: var(--white);

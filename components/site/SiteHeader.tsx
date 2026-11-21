@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n/config";
 import { SITE, type NavKey } from "@/lib/content/site";
+import { ThemeToggle } from "@/components/site/ThemeToggle";
 
 const NAV: { key: NavKey; href: string }[] = [
   { key: "services", href: "#services" },
@@ -57,6 +58,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
             EN
           </Link>
         </div>
+        <ThemeToggle />
         <Link className="sbtn p s" href={`${home}#contact`}>
           {t.nav.letsTalk}
         </Link>
