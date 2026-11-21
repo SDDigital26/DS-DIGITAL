@@ -1,10 +1,12 @@
 import { cache } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { defaultLocale, isLocale, locales, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
+import { SITE } from "@/lib/content/site";
 import { db } from "@/lib/db";
 import { ContactForm } from "@/components/site/ContactForm";
 
@@ -34,6 +36,38 @@ const loadService = cache(async (locale: Locale, slug: string) => {
 });
 
 type Loaded = NonNullable<Awaited<ReturnType<typeof loadService>>>;
+
+/** Опубликованные кейсы и FAQ — по ТЗ §8 пустые разделы не показываем. */
+async function loadRelated(locale: Locale) {
+  const [projects, faq] = await Promise.all([
+    db.project.findMany({
+      where: { published: true },
+      orderBy: [{ sort: "asc" }, { createdAt: "desc" }],
+      take: 4,
+      include: { translations: true },
+    }),
+    db.faqItem.findMany({
+      where: { locale, published: true },
+      orderBy: [{ sort: "asc" }, { question: "asc" }],
+      take: 6,
+      select: { id: true, question: true, answer: true },
+    }),
+  ]);
+  const cases = projects.flatMap((project) => {
+    const t =
+      project.translations.find((x) => x.locale === locale) ?? project.translations[0];
+    if (!t) return [];
+    return [{ id: project.id, title: t.title, summary: t.summary || t.description.slice(0, 160) }];
+  });
+  return { cases, faq };
+}
+
+/** Демонстрация — только реальный публичный кейс KarmaRent (скриншоты на демо-данных). */
+const DEMO_SHOTS = [
+  { src: "/cases/rideflow/calendar.webp", alt: "Occupancy calendar" },
+  { src: "/cases/rideflow/rentals.webp", alt: "Rental list" },
+  { src: "/cases/rideflow/gps-map.jpg", alt: "GPS tracking" },
+];
 
 function alternatesFor(loaded: Loaded, locale: Locale): Metadata["alternates"] {
   const languages: Record<string, string> = {};
@@ -80,9 +114,25 @@ export default async function ServicePage({
 
   const t = loaded.translation;
   const benefits = Array.isArray(t.benefits) ? (t.benefits as string[]) : [];
+  const [related, settings] = await Promise.all([
+    loadRelated(l),
+    import("@/lib/site-settings").then((m) => m.getSiteSettings()),
+  ]);
   const sectionLabels = l === "ru"
-    ? { breadcrumb: "Главная", problem: "Задача", solution: "Подход к решению", benefits: "Что входит", request: "Обсудить задачу" }
-    : { breadcrumb: "Home", problem: "The challenge", solution: "Approach", benefits: "What’s included", request: "Discuss your project" };
+    ? {
+        breadcrumb: "Главная", problem: "Задача", solution: "Подход к решению",
+        features: "Возможности", benefits: "Что входит", demo: "Демонстрация",
+        portfolio: "Связанные кейсы", technologies: "Технологии", process: "Процесс работы",
+        faq: "Частые вопросы", request: "Обсудить задачу", start: "Начать проект",
+      }
+    : {
+        breadcrumb: "Home", problem: "The challenge", solution: "Approach",
+        features: "Capabilities", benefits: "What’s included", demo: "Demo",
+        portfolio: "Related cases", technologies: "Technologies", process: "Our process",
+        faq: "FAQ", request: "Discuss your project", start: "Start a project",
+      };
+  const s = SITE[l];
+  const showDemo = slug === "crm-development" && settings.aiEnabled;
 
   return (
     <>
@@ -101,6 +151,15 @@ export default async function ServicePage({
         {t.hero ? (
           <p className="mt-4 max-w-3xl text-lg text-secondary">{t.hero}</p>
         ) : null}
+        {/* ТЗ §8: CTA в первом экране, доступен без долгого скролла на мобильных. */}
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link href="#lead-form" className="rounded-full bg-accent px-6 py-3 font-medium text-white hover:bg-accent/85">
+            {sectionLabels.request}
+          </Link>
+          <Link href={`/${l}/calculator`} className="rounded-full border border-white/15 px-6 py-3 font-medium text-white hover:bg-white/5">
+            {l === "ru" ? "Рассчитать стоимость" : "Estimate cost"}
+          </Link>
+        </div>
       </div>
 
       {t.problem ? (
@@ -130,6 +189,101 @@ export default async function ServicePage({
               </li>
             ))}
           </ul>
+        </section>
+      ) : null}
+
+      {/* ТЗ §8: Возможности — реальные направления студии (без выдуманных фактов). */}
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <h2 className="text-2xl font-semibold">{sectionLabels.features}</h2>
+        <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+          {s.about.focus.map((item) => (
+            <li key={item} className="rounded-xl border border-white/10 bg-surface/50 p-3 text-sm text-secondary">
+              {item}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* ТЗ §8: Демонстрация — только реальный кейс, скриншоты на демо-данных. */}
+      {showDemo ? (
+        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+          <h2 className="text-2xl font-semibold">{sectionLabels.demo}</h2>
+          <p className="mt-2 text-sm text-secondary">
+            {l === "ru"
+              ? "KarmaRent CRM / RIDEFLOW — CRM для управления арендой. Скриншоты на демонстрационных данных."
+              : "KarmaRent CRM / RIDEFLOW — a CRM for rental management. Screenshots show demo data."}
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            {DEMO_SHOTS.map((shot) => (
+              <div key={shot.src} className="relative aspect-video overflow-hidden rounded-xl border border-white/10">
+                <Image src={shot.src} alt={shot.alt} fill sizes="(max-width: 640px) 100vw, 33vw" className="object-cover" />
+              </div>
+            ))}
+          </div>
+          <Link href={`/${l}/projects`} className="mt-4 inline-block text-sm text-link hover:text-cyan">
+            {l === "ru" ? "Все проекты" : "All projects"} →
+          </Link>
+        </section>
+      ) : null}
+
+      {/* ТЗ §8: Портфолио — только опубликованные кейсы; пустое не показываем. */}
+      {related.cases.length > 0 ? (
+        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+          <h2 className="text-2xl font-semibold">{sectionLabels.portfolio}</h2>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {related.cases.map((item) => (
+              <article key={item.id} className="rounded-xl border border-white/10 bg-surface p-4">
+                <h3 className="font-medium">{item.title}</h3>
+                <p className="mt-1 text-sm text-secondary">{item.summary}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {/* ТЗ §8: Технологии — только реально используемый стек. */}
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <h2 className="text-2xl font-semibold">{sectionLabels.technologies}</h2>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {s.technologies.groups.map((group) => (
+            <div key={group.name} className="rounded-xl border border-white/10 bg-surface p-4">
+              <h3 className="text-sm font-semibold text-cyan">{group.name}</h3>
+              <ul className="mt-2 flex flex-wrap gap-2">
+                {group.items.map((item) => (
+                  <li key={item} className="rounded-full bg-white/5 px-2 py-1 text-xs text-secondary">{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ТЗ §8: Процесс работы — пять шагов, согласованных в ТЗ. */}
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <h2 className="text-2xl font-semibold">{sectionLabels.process}</h2>
+        <ol className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {s.process.steps.map((step, index) => (
+            <li key={step.title} className="rounded-xl border border-white/10 bg-surface p-4">
+              <span className="text-xs text-cyan">0{index + 1}</span>
+              <h3 className="mt-2 font-medium">{step.title}</h3>
+              <p className="mt-1 text-xs text-secondary">{step.text}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      {/* ТЗ §8: FAQ — только опубликованные вопросы; пустое не показываем. */}
+      {related.faq.length > 0 ? (
+        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+          <h2 className="text-2xl font-semibold">{sectionLabels.faq}</h2>
+          <div className="mt-4 grid gap-2">
+            {related.faq.map((item) => (
+              <details key={item.id} className="rounded-xl border border-white/10 bg-surface p-4">
+                <summary className="cursor-pointer font-medium">{item.question}</summary>
+                <p className="mt-2 text-sm text-secondary">{item.answer}</p>
+              </details>
+            ))}
+          </div>
         </section>
       ) : null}
 
