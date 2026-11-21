@@ -111,6 +111,8 @@ async function main() {
       .replace(/<script\b[^>]*\/>/g, "");
 
     html = rewritePaths(html);
+    // Без JS браузер может не отрисовать lazy-картинки при якорном скролле.
+    html = html.replace(/\sloading="lazy"/g, ' loading="eager"');
     html = html.replace(
       "</head>",
       `<meta name="robots" content="noindex,nofollow"><style>.preloader,.ai,.calc-form,.contact-form{display:none!important}</style></head>`,
