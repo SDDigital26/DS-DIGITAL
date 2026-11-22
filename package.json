@@ -18,7 +18,7 @@
     "seed:owner": "tsx scripts/seed-owner.ts",
     "seed:content": "tsx scripts/seed-content.ts",
     "seed:calculator": "tsx scripts/seed-calculator.ts",
-    "seed:articles": "tsx scripts/seed-articles.ts && tsx scripts/seed-articles-more.ts",
+    "seed:articles": "tsx scripts/seed-articles.ts && tsx scripts/seed-articles-more.ts && tsx scripts/seed-articles-final.ts",
     "pages:build": "node scripts/build-gh-pages.mjs"
   },
   "dependencies": {
