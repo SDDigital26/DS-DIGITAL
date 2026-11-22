@@ -532,25 +532,16 @@ html[data-theme="light"] .ds .hero .sbtn:not(.p) {
   width: var(--w);
   transform: scaleX(0);
   transform-origin: left;
+  transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.5s;
+  opacity: 0.4;
 }
 
 .ds .scard:hover .bar,
 .ds .scard:focus-visible .bar,
 .ds .scard.on .bar {
-  /* Пока мышь на плашке — полоса повторяет рост, а не замирает после одного прохода. */
-  animation: ds-grow 1.4s ease-in-out infinite;
-}
-
-@keyframes ds-grow {
-  0% {
-    transform: scaleX(0);
-    opacity: 0.4;
-  }
-  70%,
-  100% {
-    transform: scaleX(1);
-    opacity: 1;
-  }
+  /* ТЗ: подсветка держится, пока курсор на плашке (transition, не конечный keyframes). */
+  transform: scaleX(1);
+  opacity: 1;
 }
 
 .ds .smsg {
@@ -585,17 +576,12 @@ html[data-theme="light"] .ds .hero .sbtn:not(.p) {
   height: 2px;
   background: repeating-linear-gradient(90deg, var(--violet) 0 6px, transparent 6px 12px);
   background-size: 24px 2px;
+  transition: background-position 1.2s linear;
 }
 
 .ds .scard:hover .flow span.l,
 .ds .scard.on .flow span.l {
-  animation: ds-dash 1s linear infinite;
-}
-
-@keyframes ds-dash {
-  to {
-    background-position: 24px 0;
-  }
+  background-position: 24px 0;
 }
 
 .ds code {
@@ -648,20 +634,6 @@ body.hero-off .ds .ring {
 .ds .scard:hover::after,
 .ds .scard:focus-visible::after {
   opacity: 1;
-  /* Пока курсор на плашке — подсветка дышит, а не мигает один раз. */
-  animation: card-glow 2.4s ease-in-out infinite;
-}
-
-@keyframes card-glow {
-  0%,
-  100% {
-    opacity: 0.55;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.06);
-  }
 }
 
 /* Мини-визуализации в карточках */

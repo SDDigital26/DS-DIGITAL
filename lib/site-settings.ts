@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { Locale } from "@/lib/i18n/config";
 import { DEFAULT_DISCLAIMER } from "@/lib/calculator-defaults";
 import type { CalcRule } from "@/lib/calculator";
@@ -39,10 +40,14 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   noindex: true,
 };
 
-export async function getSiteSettings(): Promise<SiteSettings> {
+/**
+ * Один запрос к БД на один серверный рендер (layout + metadata + page).
+ * `cache()` действует в рамках запроса и не кэширует между пользователями.
+ */
+export const getSiteSettings = cache(async (): Promise<SiteSettings> => {
   const raw = await getSetting<Partial<SiteSettings>>("site").catch(() => null);
   return { ...DEFAULT_SITE_SETTINGS, ...(raw ?? {}) };
-}
+});
 
 export type CalculatorData = {
   rules: CalcRule[];

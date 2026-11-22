@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { cache } from "react";
 import { defaultLocale, isLocale, type Locale } from "@/lib/i18n/config";
 import { SITE } from "@/lib/content/site";
 import { db } from "@/lib/db";
@@ -37,7 +38,7 @@ type HomeProject = {
 };
 
 /** Опубликованные проекты для блока «Проекты» (locale с фолбэком на другой язык). */
-async function loadProjects(locale: Locale): Promise<HomeProject[]> {
+const loadProjects = cache(async (locale: Locale): Promise<HomeProject[]> => {
   const projects = await db.project.findMany({
     where: { published: true },
     orderBy: [{ sort: "asc" }, { createdAt: "desc" }],
@@ -60,28 +61,28 @@ async function loadProjects(locale: Locale): Promise<HomeProject[]> {
       },
     ];
   });
-}
+});
 
 type HomeTestimonial = { id: string; authorName: string; authorRole: string | null; text: string };
 
 /** Только реальные отзывы с согласием автора (ТЗ §4.6, C-2). */
-async function loadTestimonials(locale: Locale): Promise<HomeTestimonial[]> {
+const loadTestimonials = cache(async (locale: Locale): Promise<HomeTestimonial[]> => {
   return db.testimonial.findMany({
     where: { ...PUBLIC_TESTIMONIAL_WHERE, locale },
     orderBy: [{ sort: "asc" }, { createdAt: "desc" }],
     take: 6,
     select: { id: true, authorName: true, authorRole: true, text: true },
   });
-}
+});
 
-async function loadFaq(locale: Locale) {
+const loadFaq = cache(async (locale: Locale) => {
   return db.faqItem.findMany({
     where: { locale, published: true },
     orderBy: [{ sort: "asc" }, { question: "asc" }],
     take: 8,
     select: { id: true, question: true, answer: true },
   });
-}
+});
 
 type ContactLink = { key: "telegram" | "whatsapp" | "email"; label: string; href: string; external: boolean };
 
