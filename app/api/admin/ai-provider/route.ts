@@ -18,6 +18,14 @@ const configSchema = z.object({
   apiKey: z.string().trim().max(500).default(""),
   clearApiKey: z.boolean().default(false),
   temperature: z.number().min(0).max(1).default(0.3),
+  scenario: z.string().trim().max(4000).default(""),
+  /** https:// только (n8n webhook), пусто = не использовать. */
+  webhookUrl: z
+    .string()
+    .trim()
+    .max(300)
+    .refine((v) => !v || /^https:\/\/[^\s]+$/i.test(v), "Нужен https:// URL")
+    .default(""),
 });
 
 function bad(message: string, issues?: unknown) {
@@ -59,6 +67,8 @@ export async function PUT(request: NextRequest) {
     model: input.model,
     apiKey: input.clearApiKey ? "" : input.apiKey || current.apiKey,
     temperature: input.temperature,
+    scenario: input.scenario,
+    webhookUrl: input.webhookUrl,
   };
   await saveAiProviderConfig(saved);
   await db.auditLog.create({

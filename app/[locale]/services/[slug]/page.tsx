@@ -6,7 +6,7 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { defaultLocale, isLocale, locales, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
-import { SITE } from "@/lib/content/site";
+import { getSiteContent } from "@/lib/content/site-overrides";
 import { db } from "@/lib/db";
 import { ContactForm } from "@/components/site/ContactForm";
 
@@ -62,7 +62,7 @@ async function loadRelated(locale: Locale) {
   return { cases, faq };
 }
 
-/** Демонстрация — только реальный публичный кейс KarmaRent (скриншоты на демо-данных). */
+/** Демонстрация — только реальный публичный кейс RIDEFLOW (скриншоты на демо-данных). */
 const DEMO_SHOTS = [
   { src: "/cases/rideflow/calendar.webp", alt: "Occupancy calendar" },
   { src: "/cases/rideflow/rentals.webp", alt: "Rental list" },
@@ -131,7 +131,7 @@ export default async function ServicePage({
         portfolio: "Related cases", technologies: "Technologies", process: "Our process",
         faq: "FAQ", request: "Discuss your project", start: "Start a project",
       };
-  const s = SITE[l];
+  const s = (await getSiteContent(l));
   const showDemo = slug === "crm-development" && settings.aiEnabled;
 
   return (
@@ -210,8 +210,8 @@ export default async function ServicePage({
           <h2 className="text-2xl font-semibold">{sectionLabels.demo}</h2>
           <p className="mt-2 text-sm text-secondary">
             {l === "ru"
-              ? "KarmaRent CRM / RIDEFLOW — CRM для управления арендой. Скриншоты на демонстрационных данных."
-              : "KarmaRent CRM / RIDEFLOW — a CRM for rental management. Screenshots show demo data."}
+              ? "RIDEFLOW — CRM для управления арендой. Скриншоты на демонстрационных данных."
+              : "RIDEFLOW — a CRM for rental management. Screenshots show demo data."}
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
             {DEMO_SHOTS.map((shot) => (

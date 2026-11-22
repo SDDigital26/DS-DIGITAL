@@ -2,10 +2,16 @@
 
 import Link from "next/link";
 import type { Locale } from "@/lib/i18n/config";
-import { SITE } from "@/lib/content/site";
+import type { SiteDictionary } from "@/lib/content/site-overrides";
 
-export function CookiePolicyBody({ locale }: { locale: Locale }) {
-  const t = SITE[locale];
+export function CookiePolicyBody({
+  locale,
+  content,
+}: {
+  locale: Locale;
+  content: SiteDictionary;
+}) {
+  const t = content;
 
   function openSettings() {
     window.dispatchEvent(new Event("ds:cookie-settings"));

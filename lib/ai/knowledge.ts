@@ -81,3 +81,34 @@ export async function loadKnowledgeFacts(locale: "ru" | "en"): Promise<string[]>
     return `${head}: ${body}`;
   });
 }
+
+/**
+ * Актуальные цены из калькулятора — их агент может назвать как ориентир.
+ * Источник истины — админка; дисклеймер из настроек обязательно уходит в промпт.
+ */
+export async function loadPricingFacts(locale: "ru" | "en"): Promise<string[]> {
+  const [rules, config] = await Promise.all([
+    db.calculatorRule.findMany({
+      where: { active: true, locale },
+      orderBy: [{ sort: "asc" }],
+      select: { kind: true, label: true, price: true },
+    }),
+    db.calculatorConfig.findFirst({ select: { formula: true, disclaimer: true } }),
+  ]);
+  if (!rules.length) return [];
+
+  const formula = (config?.formula ?? {}) as { basePrice?: number };
+  const list = rules
+    .map((r) => `${r.label}: $${r.price}`)
+    .join("; ")
+    .slice(0, 700);
+  const base = typeof formula.basePrice === "number" ? ` Base: $${formula.basePrice}.` : "";
+
+  const prefix =
+    locale === "ru"
+      ? `Тарифы из калькулятора (USD, ориентир для расчёта):${base} ${list}.`
+      : `Prices from the calculator (USD, estimate only):${base} ${list}.`;
+
+  const disclaimer = (config?.disclaimer ?? "").trim().slice(0, 240);
+  return disclaimer ? [prefix, `Important caveat: ${disclaimer}`] : [prefix];
+}

@@ -6,7 +6,8 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { fallbackTurn, persistableUserMessage, replayFallbackState } from "@/lib/ai/fallback";
 import { generateAssistantReply } from "@/lib/ai/client";
 import { getAiProviderConfig } from "@/lib/ai/provider-config";
-import { loadKnowledgeFacts } from "@/lib/ai/knowledge";
+import { loadKnowledgeFacts, loadPricingFacts } from "@/lib/ai/knowledge";
+import { askScenarioWebhook } from "@/lib/ai/webhook";
 import { enqueueLeadNotifications } from "@/lib/notifications";
 import { getSiteSettings } from "@/lib/site-settings";
 
@@ -162,23 +163,48 @@ export async function POST(request: NextRequest) {
   const turn = fallbackTurn(state, parsed.data.message);
   const savedUserMessage = persistableUserMessage(state, turn.state, parsed.data.message);
 
-  // Внешняя модель (если подключена в админке) только переформулирует ответ
-  // детерминированного сценария. До согласия данные никуда не отправляются;
-  // согласие/шаги/создание заявки остаются на сервере. При сбое — фолбэк.
+  // Внешний сценарий n8n или модель (если подключены в админке) только
+  // переформулируют ответ детерминированного сценария. До согласия данные
+  // никуда не отправляются; согласие/шаги/создание заявки остаются на сервере.
   let reply = turn.reply;
   let mode: "fallback" | "ai" = "fallback";
   const provider = await getAiProviderConfig();
-  if (provider.provider !== "scripted" && state.consent && turn.state.step !== "done") {
-    const generated = await generateAssistantReply({
-      config: provider,
-      locale: parsed.data.locale,
-      step: turn.state.step,
-      scriptedReply: turn.reply,
-      userMessage: parsed.data.message,
-      facts: await loadKnowledgeFacts(parsed.data.locale),
-    });
-    reply = generated.reply;
-    mode = generated.usedAi ? "ai" : "fallback";
+  if (state.consent && turn.state.step !== "done") {
+    const locale = parsed.data.locale;
+    const facts = [
+      ...(await loadKnowledgeFacts(locale)),
+      ...(await loadPricingFacts(locale)),
+    ];
+
+    if (provider.webhookUrl) {
+      const hooked = await askScenarioWebhook(provider.webhookUrl, {
+        locale,
+        step: turn.state.step,
+        message: parsed.data.message,
+        scriptedReply: turn.reply,
+        history: previousMessages.slice(-10).map((m) => ({ role: m.role, content: m.content })),
+        facts,
+        scenario: provider.scenario,
+      });
+      if (hooked) {
+        reply = hooked;
+        mode = "ai";
+      }
+    }
+
+    if (mode === "fallback" && provider.provider !== "scripted") {
+      const generated = await generateAssistantReply({
+        config: provider,
+        locale,
+        step: turn.state.step,
+        scriptedReply: turn.reply,
+        userMessage: parsed.data.message,
+        facts,
+        scenario: provider.scenario,
+      });
+      reply = generated.reply;
+      mode = generated.usedAi ? "ai" : "fallback";
+    }
   }
 
   const transcript: ChatMessage[] = [

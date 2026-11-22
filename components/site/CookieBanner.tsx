@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { Locale } from "@/lib/i18n/config";
-import { SITE } from "@/lib/content/site";
+import type { SiteDictionary } from "@/lib/content/site-overrides";
 
 const STORAGE_KEY = "ds_cookie_consent";
 
@@ -14,8 +14,8 @@ type Consent = "all" | "essential";
  * До согласия работают только необходимые cookie; аналитика не подключается.
  * Выбор хранится в localStorage, поэтому баннер не появляется повторно.
  */
-export function CookieBanner({ locale }: { locale: Locale }) {
-  const t = SITE[locale].cookies;
+export function CookieBanner({ locale, content }: { locale: Locale; content: SiteDictionary }) {
+  const t = content.cookies;
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {

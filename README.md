@@ -28,7 +28,7 @@ BUILD. AUTOMATE. SCALE.
 Сверка с ТЗ Док.2 §6 — порядок и состав блоков в `app/[locale]/page.tsx`:
 
 - Preloader (§7.5) — `components/site/Preloader.tsx`: ≤600 мс, один раз за сессию (sessionStorage), инлайн-скрипт до отрисовки + JS-фолбэк скрытия, `pointer-events: none`, `aria-hidden`, выключен при `prefers-reduced-motion` и в Static-режиме; без JS исчезает по CSS-анимации.
-- Hero → **About DS DIGITAL** (тексты из `SITE.about`, ссылка на `/about`) → Services → Featured Projects → **KarmaRent CRM** (выделенный блок с реальными скриншотами из `public/cases/rideflow/` и ссылками на живые площадки `rideflow.ac.vn`, `karmarentsite.duckdns.org`; скриншоты — демо-данные) → **Technologies** (5 групп: Frontend/Backend/AI/Integrations/Infra, только реально используемый стек) → Process → **Why Choose DS DIGITAL** (6 проверяемых преимуществ, без пустых обещаний) → Reviews → FAQ → **Calculator** (перенесён на позицию §6.13) → **AI Consultant** (§6.14, кнопка открывает плавающий виджет через событие `ds:ai-open`; секция рендерится только при `aiEnabled`) → Contact → форма заявки → Footer.
+- Hero → **About DS DIGITAL** (тексты из `SITE.about`, ссылка на `/about`) → Services → Featured Projects → **RIDEFLOW** (выделенный блок с реальными скриншотами из `public/cases/rideflow/` и ссылкой на живую площадку `rideflow.ac.vn`; скриншоты — демо-данные) → **Technologies** (5 групп: Frontend/Backend/AI/Integrations/Infra, только реально используемый стек) → Process → **Why Choose DS DIGITAL** (6 проверяемых преимуществ, без пустых обещаний) → Reviews → FAQ → **Calculator** (перенесён на позицию §6.13) → **AI Consultant** (§6.14, кнопка открывает плавающий виджет через событие `ds:ai-open`; секция рендерится только при `aiEnabled`) → Contact → форма заявки → Footer.
 - Навигация (§3.2): добавлен **About** (`/ru|en/about`) в шапку и бургер-меню.
 - Блоки **Preloader/About/Technologies/Why/AI** добавлены в `lib/content/site.ts` (RU+EN) и стилизованы в `app/proto.css`; адаптив `about-grid` ≤900px.
 - Проверено на `localhost:3001` (Docker): порядок `about > services > projects > karma > technologies > process > why > reviews > faq > calc > ai > contact > lead`, EN-версия отдаётся, горизонтальной прокрутки нет, консоль без ошибок, первый визит показывает/скрывает прелоадер, повторный — пропускает, кнопка AI открывает виджет.
@@ -82,7 +82,7 @@ BUILD. AUTOMATE. SCALE.
 - Hero: звёздный фон, 3D-орбита из трёх CSS-колец с параллаксом от курсора, печатающийся терминал в центре, слоган-тег, заголовок, подзаголовок, кнопки «Начать проект» / «Смотреть услуги», подсказка «Листайте вниз».
 - Молния за курсором (`components/site/Lightning.tsx`): толстая цветная линия + тонкая белая, случайные ветвления, автоупрощение на медленных кадрах, только desktop, отключается при `prefers-reduced-motion`; на тач-устройствах — короткие импульсы.
 - Карточки услуг (`components/site/ServiceCards.tsx`): 7 направлений, мини-визуализации (bars / messages / CRM / AI / flow / bot / api), 3D-наклон, раскрытие примера по клику и наведению, появление при прокрутке.
-- Секция KarmaRent — реальный публичный кейс, публикация согласована заказчиком (22.11.2026); скриншоты на демонстрационных данных.
+- Секция RIDEFLOW — реальный публичный кейс, публикация согласована заказчиком (22.11.2026); скриншоты на демонстрационных данных.
 - Контакты: Telegram / WhatsApp / Email как в прототипе (без выдуманных ссылок) + кнопка «Оставить заявку» на реальную форму `/contact`.
 - Шрифт прототипа Space Grotesk — self-hosted (`@fontsource-variable/space-grotesk`), без Google Fonts.
 - Декоративные «призраки» кода (`components/site/GhostCode.tsx`) — aria-hidden, отключаются при reduced-motion и на слабых устройствах.
@@ -283,6 +283,6 @@ docker-compose.yml   # web:3001 + postgres:5433 (healthcheck на обоих)
 почтовый провайдер и Telegram-бот ·
 цены калькулятора · контактные данные · реквизиты и юртексты · список реальных кейсов ·
 оттенок синего для мелкого текста.
-AI-ключ и база знаний настраиваются в админке; согласие на публичную демонстрацию KarmaRent получено 22.11.2026.
+AI-ключ, база знаний и тексты сайта настраиваются в админке.
 
 OWNER-аккаунт DS DIGITAL создан (email у пользователя), пароль показан один раз при создании.

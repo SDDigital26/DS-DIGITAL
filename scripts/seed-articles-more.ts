@@ -26,9 +26,9 @@ CRM для малого бизнеса нужна в момент, когда д
 - финансы и аренда считаются в разных файлах;
 - сотрудники тратят время на рутинное заполнение таблиц.
 
-## Что даёт CRM на примере KarmaRent
+## Что даёт CRM на примере RIDEFLOW
 
-Наш реальный проект — [KarmaRent CRM / RIDEFLOW](/ru/projects): CRM для управления арендой. В ней есть календарь занятости, оплаты и залоги, договоры с подписью гостя, аналитика и прибыль, GPS-мониторинг техники и Telegram-бот бронирования. Это не презентация — на сайте опубликованы скриншоты интерфейса на демонстрационных данных.
+Наш реальный проект — [RIDEFLOW](/ru/projects): CRM для управления арендой. В ней есть календарь занятости, оплаты и залоги, договоры с подписью гостя, аналитика и прибыль, GPS-мониторинг техники и Telegram-бот бронирования. Это не презентация — на сайте опубликованы скриншоты интерфейса на демонстрационных данных.
 
 ## Как выбрать CRM
 
@@ -47,7 +47,7 @@ _______
 **Проверить перед публикацией:** состав функций CRM — только по факту работающего продукта.`,
       faq: [
         { q: "Когда малому бизнесу нужна CRM?", a: "Когда заявки приходят из нескольких каналов, история клиентов теряется, а учёт ведётся в таблицах." },
-        { q: "Какая CRM есть у DS DIGITAL?", a: "Мы разрабатываем CRM под процессы компании. Пример — KarmaRent CRM / RIDEFLOW для управления арендой." },
+        { q: "Какая CRM есть у DS DIGITAL?", a: "Мы разрабатываем CRM под процессы компании. Пример — RIDEFLOW для управления арендой." },
         { q: "Можно ли подключить сайт к CRM?", a: "Да, формы сайта и уведомления связываются с CRM через API и Telegram-бота." },
         { q: "Как узнать стоимость?", a: "Используйте калькулятор для ориентира и напишите нам с описанием процесса для точного предложения." },
       ],
@@ -68,9 +68,9 @@ CRM for small business becomes necessary when customer data no longer fits in a 
 - finances and rentals are tracked in different files;
 - staff spend time filling in spreadsheets.
 
-## What CRM delivers: the KarmaRent example
+## What CRM delivers: the RIDEFLOW example
 
-Our real project — [KarmaRent CRM / RIDEFLOW](/en/projects): a CRM for rental management. It includes an occupancy calendar, payments and deposits, contracts with guest e-signature, analytics and profit, GPS vehicle tracking and a Telegram booking bot. This is not a presentation — the site publishes interface screenshots on demo data.
+Our real project — [RIDEFLOW](/en/projects): a CRM for rental management. It includes an occupancy calendar, payments and deposits, contracts with guest e-signature, analytics and profit, GPS vehicle tracking and a Telegram booking bot. This is not a presentation — the site publishes interface screenshots on demo data.
 
 ## How to choose a CRM
 
@@ -86,10 +86,10 @@ The exact price is fixed after we agree the scope. Use the [calculator](/en/calc
 
 _______
 
-**Check before publication:** permission for public display of the KarmaRent case; feature list — only from the actually working product.`,
+**Check before publication:** feature list — only from the actually working product.`,
       faq: [
         { q: "When does a small business need CRM?", a: "When leads arrive from several channels, customer history is lost and accounting is done in spreadsheets." },
-        { q: "What CRM has DS DIGITAL built?", a: "We build CRM systems tailored to company processes. One example is KarmaRent CRM / RIDEFLOW for rental management." },
+        { q: "What CRM has DS DIGITAL built?", a: "We build CRM systems tailored to company processes. One example is RIDEFLOW for rental management." },
         { q: "Can our website be connected to the CRM?", a: "Yes, site forms and notifications are wired to the CRM via API and a Telegram bot." },
         { q: "How much does it cost?", a: "Use the calculator for an estimate and contact us with your process description for an exact proposal." },
       ],
@@ -195,7 +195,7 @@ Telegram-бот для заявок нужен, чтобы лиды не тер�
 
 ## Где использовать бота
 
-Бот подходит для уведомлений команды о новых заявках, для связи с клиентами и для бронирования. В уже упомянутом проекте [KarmaRent CRM / RIDEFLOW](/ru/projects) есть Telegram-бот бронирования — это реальная функция работающего продукта.
+Бот подходит для уведомлений команды о новых заявках, для связи с клиентами и для бронирования. В уже упомянутом проекте [RIDEFLOW](/ru/projects) есть Telegram-бот бронирования — это реальная функция работающего продукта.
 
 ## Настройка без программиста
 
@@ -216,7 +216,7 @@ _______
         { q: "Что делает Telegram-бот для заявок?", a: "Отправляет уведомление о новой заявке в чат или канал, чтобы команда видела обращение сразу." },
         { q: "Теряются ли заявки, если бот недоступен?", a: "Нет — заявка сохраняется в CRM, а уведомление помечается как недоставленное." },
         { q: "Можно ли настроить бота самому?", a: "Да, в админке есть поля для токена, чата и тестовой отправки; изменения применяются без деплоя." },
-        { q: "Есть ли бот в ваших проектах?", a: "Да, в KarmaRent CRM / RIDEFLOW есть Telegram-бот бронирования — по факту работающего продукта." },
+        { q: "Есть ли бот в ваших проектах?", a: "Да, в RIDEFLOW есть Telegram-бот бронирования — по факту работающего продукта." },
       ],
     },
     en: {
@@ -234,7 +234,7 @@ The flow is simple: a visitor fills the form → the lead is saved in the CRM �
 
 ## Where to use a bot
 
-A bot works for team notifications about new leads, customer communication and booking. In the already mentioned [KarmaRent CRM / RIDEFLOW](/en/projects) case there is a Telegram booking bot — a real feature of a working product.
+A bot works for team notifications about new leads, customer communication and booking. In the already mentioned [RIDEFLOW](/en/projects) case there is a Telegram booking bot — a real feature of a working product.
 
 ## Setup without a programmer
 
@@ -250,12 +250,12 @@ The exact price depends on scope and is fixed before the start. For an estimate 
 
 _______
 
-**Check before publication:** the fact and terms of the Telegram bot in the KarmaRent case; token and channel — only from actually configured connections.`,
+**Check before publication:** token and channel — only from actually configured connections.`,
       faq: [
         { q: "What does a Telegram lead bot do?", a: "It sends a notification about a new lead to a chat or channel so the team sees it immediately." },
         { q: "Are leads lost if the bot is down?", a: "No — the lead is saved in the CRM and the notification is marked as undelivered." },
         { q: "Can I set it up myself?", a: "Yes, the admin panel has fields for the token, chat and a test send; changes apply without deployment." },
-        { q: "Do you have a bot in your projects?", a: "Yes, KarmaRent CRM / RIDEFLOW has a Telegram booking bot — based on the actually working product." },
+        { q: "Do you have a bot in your projects?", a: "Yes, RIDEFLOW has a Telegram booking bot — based on the actually working product." },
       ],
     },
   },

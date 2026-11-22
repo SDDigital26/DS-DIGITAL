@@ -155,7 +155,7 @@ We fix the exact price after discussing the scope. Use the [calculator](/en/calc
 
 ## Пример из практики
 
-Наш проект [KarmaRent CRM / RIDEFLOW](/ru/projects) — CRM для управления арендой. В ней календарь занятости, оплаты и залоги, договоры, аналитика, GPS-мониторинг и Telegram-бот. Это рабочий продукт со снимками интерфейса на демонстрационных данных.
+Наш проект [RIDEFLOW](/ru/projects) — CRM для управления арендой. В ней календарь занятости, оплаты и залоги, договоры, аналитика, GPS-мониторинг и Telegram-бот. Это рабочий продукт со снимками интерфейса на демонстрационных данных.
 
 Мы не выдумываем функции «на будущее»: в публикациях описывается только то, что реально работает.
 
@@ -201,7 +201,7 @@ What you must not cut is code quality and security. Saving on architecture turns
 
 ## A real example
 
-Our project [KarmaRent CRM / RIDEFLOW](/en/projects) is a CRM for rental management: occupancy calendar, payments and deposits, contracts, analytics, GPS tracking and a Telegram booking bot. It is a working product with interface screenshots on demo data.
+Our project [RIDEFLOW](/en/projects) is a CRM for rental management: occupancy calendar, payments and deposits, contracts, analytics, GPS tracking and a Telegram booking bot. It is a working product with interface screenshots on demo data.
 
 We do not invent "future" features: our publications describe only what actually works.
 

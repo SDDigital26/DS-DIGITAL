@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { defaultLocale, isLocale } from "@/lib/i18n/config";
-import { SITE } from "@/lib/content/site";
+import { getSiteContent } from "@/lib/content/site-overrides";
 
 export async function generateMetadata({
   params,
@@ -10,8 +10,8 @@ export async function generateMetadata({
   const { locale } = await params;
   const l = isLocale(locale) ? locale : defaultLocale;
   return {
-    title: SITE[l].legal.termsTitle,
-    description: SITE[l].legal.termsLead,
+    title: (await getSiteContent(l)).legal.termsTitle,
+    description: (await getSiteContent(l)).legal.termsLead,
     alternates: { canonical: `/${l}/terms` },
   };
 }
@@ -23,7 +23,7 @@ export default async function TermsPage({
 }) {
   const { locale } = await params;
   const l = isLocale(locale) ? locale : defaultLocale;
-  const t = SITE[l];
+  const t = (await getSiteContent(l));
 
   return (
     <div className="ds-calc-page">

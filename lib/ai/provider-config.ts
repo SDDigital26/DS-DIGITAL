@@ -21,6 +21,10 @@ export type AiProviderConfig = {
   apiKey: string;
   /** Температура ответа 0…1. */
   temperature: number;
+  /** Свой сценарий продаж/ответов (дополнительные инструкции агенту). */
+  scenario: string;
+  /** Webhook n8n: если задан, сценарий выполняется там. */
+  webhookUrl: string;
 };
 
 /** Что безопасно отдать в админку/клиент (без секрета). */
@@ -31,6 +35,8 @@ export type AiProviderPublic = {
   temperature: number;
   hasApiKey: boolean;
   keyHint: string;
+  scenario: string;
+  webhookUrl: string;
 };
 
 export const DEFAULT_AI_PROVIDER_CONFIG: AiProviderConfig = {
@@ -39,6 +45,8 @@ export const DEFAULT_AI_PROVIDER_CONFIG: AiProviderConfig = {
   model: "",
   apiKey: "",
   temperature: 0.3,
+  scenario: "",
+  webhookUrl: "",
 };
 
 /** Пресеты для всех поддерживаемых вариантов, включая бесплатные и локальные. */
@@ -70,6 +78,8 @@ export function publicAiProvider(config: AiProviderConfig): AiProviderPublic {
     keyHint: config.apiKey
       ? `${"•".repeat(Math.max(0, config.apiKey.length - 4))}${config.apiKey.slice(-4)}`
       : "",
+    scenario: config.scenario,
+    webhookUrl: config.webhookUrl,
   };
 }
 

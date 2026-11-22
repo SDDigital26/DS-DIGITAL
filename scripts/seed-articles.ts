@@ -151,7 +151,7 @@ _______
 
 ## 2. Реальные кейсы, а не презентации
 
-Попросите показать работающий продукт. Пример из нашего портфолио — [KarmaRent CRM / RIDEFLOW](/ru/projects): CRM для управления арендой. На сайте доступны скриншоты календаря занятости, списка аренд, GPS-мониторинга и договоров. Данные на скриншотах — демонстрационные. Это честный способ показать возможности без раскрытия чужих данных.
+Попросите показать работающий продукт. Пример из нашего портфолио — [RIDEFLOW](/ru/projects): CRM для управления арендой. На сайте доступны скриншоты календаря занятости, списка аренд, GPS-мониторинга и договоров. Данные на скриншотах — демонстрационные. Это честный способ показать возможности без раскрытия чужих данных.
 
 ## 3. Честность вместо обещаний
 
@@ -183,7 +183,7 @@ _______
       faq: [
         { q: "Как понять, что подрядчик ответственный?", a: "Он объясняет процесс, фиксирует состав работ и сроки до старта и показывает реальные продукты, а не презентации." },
         { q: "Публикуете ли вы отзывы клиентов?", a: "Пока нет — отзывы появятся после согласия авторов. Мы не публикуем выдуманные материалы." },
-        { q: "Можно ли посмотреть пример вашей работы?", a: "Да, в разделе проектов представлен KarmaRent CRM / RIDEFLOW со скриншотами на демонстрационных данных." },
+        { q: "Можно ли посмотреть пример вашей работы?", a: "Да, в разделе проектов представлен RIDEFLOW со скриншотами на демонстрационных данных." },
         { q: "Что делать после выбора подрядчика?", a: "Опишите задачу, согласуйте состав работ и сроки, затем используйте калькулятор для ориентира по бюджету." },
       ],
     },
@@ -202,7 +202,7 @@ Ask how the work is organised. Ours has five steps: discovery, spec and plan, de
 
 ## 2. Real cases, not slides
 
-Ask to see a working product. An example from our [portfolio](/en/projects) is KarmaRent CRM / RIDEFLOW — a CRM for rental management. The site shows screenshots of the occupancy calendar, rental list, GPS tracking and contracts. The data on the screenshots is demo data. That is an honest way to show capabilities without exposing someone else's data.
+Ask to see a working product. An example from our [portfolio](/en/projects) is RIDEFLOW — a CRM for rental management. The site shows screenshots of the occupancy calendar, rental list, GPS tracking and contracts. The data on the screenshots is demo data. That is an honest way to show capabilities without exposing someone else's data.
 
 ## 3. Honesty over promises
 
@@ -230,11 +230,11 @@ Yes. We fix the scope before the start, so you can begin with the first stage an
 
 _______
 
-**Check before publication:** the link to the specific KarmaRent case and permission for public display; review data (currently none).`,
+**Check before publication:** review data (currently none).`,
       faq: [
         { q: "How can I tell a responsible vendor?", a: "They explain the process, fix scope and timelines before the start and show real products rather than presentations." },
         { q: "Do you publish client reviews?", a: "Not yet — reviews will appear after the authors consent. We do not publish invented material." },
-        { q: "Can I see an example of your work?", a: "Yes, the projects section features KarmaRent CRM / RIDEFLOW with screenshots on demo data." },
+        { q: "Can I see an example of your work?", a: "Yes, the projects section features RIDEFLOW with screenshots on demo data." },
         { q: "What should I do after choosing a vendor?", a: "Describe the task, agree scope and timelines, then use the calculator to estimate the budget." },
       ],
     },

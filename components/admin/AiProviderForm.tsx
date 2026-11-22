@@ -36,6 +36,8 @@ const EMPTY: AiProviderPublic = {
   temperature: 0.3,
   hasApiKey: false,
   keyHint: "",
+  scenario: "",
+  webhookUrl: "",
 };
 
 /**
@@ -99,6 +101,8 @@ export function AiProviderForm() {
       temperature: form.temperature,
       apiKey,
       clearApiKey,
+      scenario: form.scenario,
+      webhookUrl: form.webhookUrl,
     };
   }
 
@@ -315,6 +319,38 @@ export function AiProviderForm() {
             ) : null}
           </>
         ) : null}
+
+        <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-bg/40 p-4">
+          <p className="text-xs text-secondary">
+            Свой сценарий и n8n. Заполните сценарий продаж/ответов — агент будет учитывать его вместе с
+            фактами из базы знаний и ценами калькулятора. Webhook n8n (https://) перехватывает диалог:
+            сценарий выполняется в n8n, ответ возвращается полем <code>reply</code>.
+          </p>
+          <div className="flex flex-col gap-1">
+            <label className={label} htmlFor="ai-scenario">Сценарий агента</label>
+            <textarea
+              id="ai-scenario"
+              className={input}
+              rows={6}
+              maxLength={4000}
+              value={form.scenario}
+              onChange={(e) => patch("scenario", e.target.value)}
+              placeholder="Например: сначала выяви потребность, затем предложи подходящее направление, назови ориентир по цене из калькулятора и предложи оставить заявку."
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className={label} htmlFor="ai-webhook">Webhook n8n (необязательно)</label>
+            <input
+              id="ai-webhook"
+              className={input}
+              type="url"
+              maxLength={300}
+              value={form.webhookUrl}
+              onChange={(e) => patch("webhookUrl", e.target.value)}
+              placeholder="https://n8n.example.com/webhook/ds-agent"
+            />
+          </div>
+        </div>
 
         <div className="flex flex-wrap gap-2">
           <button

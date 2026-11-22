@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { defaultLocale, isLocale } from "@/lib/i18n/config";
-import { SITE } from "@/lib/content/site";
+import { getSiteContent } from "@/lib/content/site-overrides";
 import { ServiceCards } from "@/components/site/ServiceCards";
 
 export async function generateMetadata({
@@ -11,8 +11,8 @@ export async function generateMetadata({
   const { locale } = await params;
   const l = isLocale(locale) ? locale : defaultLocale;
   return {
-    title: SITE[l].about.title,
-    description: SITE[l].about.lead,
+    title: (await getSiteContent(l)).about.title,
+    description: (await getSiteContent(l)).about.lead,
     alternates: { canonical: `/${l}/about` },
   };
 }
@@ -24,7 +24,7 @@ export default async function AboutPage({
 }) {
   const { locale } = await params;
   const l = isLocale(locale) ? locale : defaultLocale;
-  const t = SITE[l];
+  const t = (await getSiteContent(l));
 
   return (
     <div className="ds-calc-page">

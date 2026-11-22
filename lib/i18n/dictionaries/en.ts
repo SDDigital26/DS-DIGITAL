@@ -53,7 +53,7 @@ export const en = {
     showcaseEmptyTitle: "Example coming soon",
     showcaseEmptyText:
       "An interactive example will appear here once the content is ready and fact-checked.",
-    demoTitle: "KarmaRent CRM",
+    demoTitle: "RIDEFLOW",
     demoNote:
       "An interactive demo with test data will appear here once we receive the screenshots and permission to showcase the project.",
     ctaTitle: "Ready to start?",

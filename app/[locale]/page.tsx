@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { cache } from "react";
 import { defaultLocale, isLocale, type Locale } from "@/lib/i18n/config";
-import { SITE } from "@/lib/content/site";
+import { getSiteContent } from "@/lib/content/site-overrides";
 import { db } from "@/lib/db";
 import { PUBLIC_TESTIMONIAL_WHERE } from "@/lib/validation/testimonial";
 import { GhostCode } from "@/components/site/GhostCode";
@@ -133,7 +133,7 @@ export default async function HomePage({
 }) {
   const { locale } = await params;
   const l = isLocale(locale) ? locale : defaultLocale;
-  const t = SITE[l];
+  const t = await getSiteContent(l);
   const [projects, testimonials, faq, settings] = await Promise.all([
     loadProjects(l),
     loadTestimonials(l),
@@ -247,7 +247,7 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* ТЗ §6.7 — выделенный блок KarmaRent CRM: реальные скриншоты и живые площадки. */}
+      {/* ТЗ §6.7 — выделенный блок RIDEFLOW: реальные скриншоты и живые площадки. */}
       <section id="karma" className="karma">
         <div className="swrap">
           <h2>{t.karma.title}</h2>

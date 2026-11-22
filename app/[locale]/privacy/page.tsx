@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { defaultLocale, isLocale } from "@/lib/i18n/config";
-import { SITE } from "@/lib/content/site";
+import { getSiteContent } from "@/lib/content/site-overrides";
 
 export async function generateMetadata({
   params,
@@ -10,8 +10,8 @@ export async function generateMetadata({
   const { locale } = await params;
   const l = isLocale(locale) ? locale : defaultLocale;
   return {
-    title: SITE[l].legal.privacyTitle,
-    description: SITE[l].legal.privacyLead,
+    title: (await getSiteContent(l)).legal.privacyTitle,
+    description: (await getSiteContent(l)).legal.privacyLead,
     alternates: { canonical: `/${l}/privacy` },
   };
 }
@@ -23,7 +23,7 @@ export default async function PrivacyPage({
 }) {
   const { locale } = await params;
   const l = isLocale(locale) ? locale : defaultLocale;
-  const t = SITE[l];
+  const t = (await getSiteContent(l));
 
   return (
     <div className="ds-calc-page">

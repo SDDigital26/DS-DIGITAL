@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { Locale } from "@/lib/i18n/config";
-import { SITE, type NavKey } from "@/lib/content/site";
+import type { NavKey } from "@/lib/content/site";
+import type { SiteDictionary } from "@/lib/content/site-overrides";
 import { ThemeToggle } from "@/components/site/ThemeToggle";
 
 const NAV: { key: NavKey; href: string }[] = [
@@ -19,8 +20,8 @@ const NAV: { key: NavKey; href: string }[] = [
   { key: "contacts", href: "#contact" },
 ];
 
-export function SiteHeader({ locale }: { locale: Locale }) {
-  const t = SITE[locale];
+export function SiteHeader({ locale, content }: { locale: Locale; content: SiteDictionary }) {
+  const t = content;
   const pathname = usePathname();
   const hrefFor = (target: Locale) => pathname.replace(/^\/(ru|en)(?=\/|$)/, `/${target}`);
   const [menuOpen, setMenuOpen] = useState(false);

@@ -6,7 +6,7 @@ import type { Locale } from "@/lib/i18n/config";
  *
  * Запрет ТЗ §4 соблюдён: никаких вымышленных клиентов, отзывов и цифр.
  * Карточки услуг показывают пример интерфейса, а не реальный кейс.
- * Раздел KarmaRent показывает реальный публичный кейс; публикация согласована
+ * Раздел RIDEFLOW показывает реальный публичный кейс; публикация согласована
  * заказчиком (22.11.2026). На скриншотах — демонстрационные данные.
  */
 
@@ -152,7 +152,7 @@ const RU: SiteContent = {
     more: "Все проекты",
   },
   karma: {
-    title: "KarmaRent CRM / RIDEFLOW",
+    title: "RIDEFLOW",
     lead: "CRM для проката байков, авто и недвижимости: вместо таблиц и тетрадей — видно, что свободно, кто и когда вернёт технику и сколько заработали.",
     features: [
       "Календарь занятости",
@@ -163,16 +163,15 @@ const RU: SiteContent = {
       "Telegram-бот бронирования",
     ],
     shots: [
-      { src: "/cases/rideflow/calendar.webp", alt: "Календарь занятости KarmaRent CRM" },
+      { src: "/cases/rideflow/calendar.webp", alt: "Календарь занятости RIDEFLOW" },
       { src: "/cases/rideflow/rentals.webp", alt: "Список аренд с датами, оплатой и остатком" },
       { src: "/cases/rideflow/gps-map.jpg", alt: "GPS-мониторинг байка на карте" },
-      { src: "/cases/rideflow/accountant-dashboard.webp", alt: "Кабинет бухгалтерера: касса и сверка смен" },
+      { src: "/cases/rideflow/accountant-dashboard.webp", alt: "Кабинет бухгалтера: касса и сверка смен" },
       { src: "/cases/rideflow/analytics.webp", alt: "Финансовый обзор: выручка и чистая прибыль" },
       { src: "/cases/rideflow/contract.webp", alt: "Договор аренды с подписью гостя" },
     ],
     links: [
       { label: "RideFlow — сайт продукта", href: "https://rideflow.ac.vn/" },
-      { label: "Karma Rent — сайт клиента", href: "https://karmarentsite.duckdns.org/" },
     ],
     note: "На скриншотах — демонстрационные данные, не production.",
     cta: "Смотреть проекты",
@@ -396,7 +395,7 @@ const EN: SiteContent = {
     more: "All projects",
   },
   karma: {
-    title: "KarmaRent CRM / RIDEFLOW",
+    title: "RIDEFLOW",
     lead: "A CRM for renting bikes, cars and property: instead of spreadsheets and notebooks you see what is free, who returns the vehicle and when, and how much you earned.",
     features: [
       "Occupancy calendar",
@@ -407,7 +406,7 @@ const EN: SiteContent = {
       "Telegram booking bot",
     ],
     shots: [
-      { src: "/cases/rideflow/calendar.webp", alt: "KarmaRent CRM occupancy calendar" },
+      { src: "/cases/rideflow/calendar.webp", alt: "RIDEFLOW occupancy calendar" },
       { src: "/cases/rideflow/rentals.webp", alt: "Rental list with dates, payment and balance" },
       { src: "/cases/rideflow/gps-map.jpg", alt: "GPS tracking of a bike on the map" },
       { src: "/cases/rideflow/accountant-dashboard.webp", alt: "Accountant dashboard: cash desk and shift reconciliation" },
@@ -416,7 +415,6 @@ const EN: SiteContent = {
     ],
     links: [
       { label: "RideFlow — product website", href: "https://rideflow.ac.vn/" },
-      { label: "Karma Rent — client website", href: "https://karmarentsite.duckdns.org/" },
     ],
     note: "The screenshots show demo data, not production.",
     cta: "View projects",

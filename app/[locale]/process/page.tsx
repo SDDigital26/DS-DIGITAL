@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { defaultLocale, isLocale } from "@/lib/i18n/config";
-import { SITE } from "@/lib/content/site";
+import { getSiteContent } from "@/lib/content/site-overrides";
 
 export async function generateMetadata({
   params,
@@ -10,8 +10,8 @@ export async function generateMetadata({
   const { locale } = await params;
   const l = isLocale(locale) ? locale : defaultLocale;
   return {
-    title: SITE[l].process.title,
-    description: SITE[l].process.lead,
+    title: (await getSiteContent(l)).process.title,
+    description: (await getSiteContent(l)).process.lead,
     alternates: { canonical: `/${l}/process` },
   };
 }
@@ -23,7 +23,7 @@ export default async function ProcessPage({
 }) {
   const { locale } = await params;
   const l = isLocale(locale) ? locale : defaultLocale;
-  const t = SITE[l];
+  const t = (await getSiteContent(l));
 
   return (
     <div className="ds-calc-page">

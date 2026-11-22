@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { defaultLocale, isLocale, locales, type Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/get-dictionary";
-import { SITE } from "@/lib/content/site";
+import { getSiteContent } from "@/lib/content/site-overrides";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Lightning } from "@/components/site/Lightning";
@@ -72,7 +72,7 @@ export default async function LocaleLayout({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
-  const t = SITE[locale];
+  const t = (await getSiteContent(locale));
   const settings = await getSiteSettings();
 
   return (
@@ -89,14 +89,14 @@ export default async function LocaleLayout({
           <a className="skip" href="#main">
             {t.skip}
           </a>
-          <SiteHeader locale={locale} />
+          <SiteHeader locale={locale} content={t} />
           <main id="main" className="flex-1">
             {children}
           </main>
-          <SiteFooter locale={locale} />
+          <SiteFooter locale={locale} content={t} />
         </div>
         {settings.aiEnabled ? <AiConsultant locale={locale} /> : null}
-        <CookieBanner locale={locale} />
+        <CookieBanner locale={locale} content={t} />
       </body>
     </html>
   );
