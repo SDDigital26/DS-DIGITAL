@@ -126,6 +126,10 @@ export function GhostCode() {
         x = 8 + Math.random() * (W - width - 16);
         y = 84 + Math.random() * (H - height - 100);
         let good = true;
+        // Не закрываем центральную колонку с заголовком и кнопками hero.
+        const cx0 = W * 0.33;
+        const cx1 = W * 0.67;
+        if (y < H * 0.9 && x + width > cx0 && x < cx1) good = false;
         for (let p = 0; p < points.length && good; p++) {
           good = okElement(document.elementFromPoint(x + points[p][0], y + points[p][1]));
         }

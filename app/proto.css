@@ -952,8 +952,7 @@ body.hero-off .ds .ring {
   padding: 12px 18px 12px 18px;
   overflow: hidden;
   white-space: pre;
-  /* Чуть шире и крупнее — как полупрозрачное консольное окно с кодом */
-  font: 400 clamp(11px, 1.3vw, 16px) / 1.65 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font: 400 clamp(10px, 1.15vw, 14px) / 1.6 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   color: var(--cyan);
   text-shadow: 0 0 10px rgba(53, 216, 255, 0.4);
   border: 1px solid rgba(53, 216, 255, 0.18);
@@ -965,7 +964,7 @@ body.hero-off .ds .ring {
 }
 
 .ds .gh.on {
-  opacity: 0.72;
+  opacity: 0.42;
 }
 
 .ds .gh.gl {
@@ -2424,7 +2423,7 @@ html[data-theme="light"] .ds .stars {
 
 /* Орбита на светлом — мягкая, в сине-фиолетовых тонах */
 html[data-theme="light"] .ds #orbit {
-  opacity: 0.55;
+  opacity: 0.7;
 }
 
 /* Плашки услуг — светлые, но с выраженным оттенком и тенью, чтобы выделялись */
@@ -2488,7 +2487,7 @@ html[data-theme="light"] .ds .gh {
 }
 
 html[data-theme="light"] .ds .gh.on {
-  opacity: 0.75;
+  opacity: 0.45;
 }
 
 html[data-theme="light"] .ds .gh .c {
@@ -2605,9 +2604,9 @@ html[data-theme="light"] .ds .why-item p {
   color: #47536b;
 }
 
-/* ---------- Код в hero (term) — тёмный и читаемый ---------- */
+/* ---------- Код в hero (term) — тёмный, но приглушённый ---------- */
 html[data-theme="light"] .ds .term {
-  opacity: 0.7;
+  opacity: 0.38;
 }
 
 html[data-theme="light"] .ds .term pre {
@@ -2742,8 +2741,8 @@ html[data-theme="light"] .ai-note a {
   }
 
   .ds .hero #orbit {
-    width: 130vw !important;
-    height: 130vw !important;
+    width: 115vw !important;
+    height: 115vw !important;
     opacity: 0.5;
   }
 
@@ -2825,131 +2824,3 @@ html[data-theme="light"] .ai-note a {
   .ds .stag { font-size: 9px; }
 }
 
-/* ============================================================
-   ФОНОВЫЙ ГРАФ ДАННЫХ — на всю страницу, ненавязчивый (ПК)
-   Узлы-контейнеры, пунктирные связи, поток данных, подписи.
-   ============================================================ */
-.dg-bg {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.75;
-  mask: radial-gradient(ellipse 96% 88% at 50% 45%, #000 34%, transparent 96%);
-  -webkit-mask: radial-gradient(ellipse 96% 88% at 50% 45%, #000 34%, transparent 96%);
-}
-
-/* Пунктирные связи */
-.dg-link {
-  stroke: url(#dgLine);
-  stroke-width: 0.16;
-  stroke-dasharray: 0.65 1.35;
-  opacity: 0.42;
-  animation: dg-dash 12s linear infinite;
-}
-
-@keyframes dg-dash {
-  to { stroke-dashoffset: -24; }
-}
-
-/* Летящий пакет данных */
-.dg-packet {
-  fill: var(--cyan);
-  opacity: 0.95;
-  filter: drop-shadow(0 0 1.2px rgba(53, 216, 255, 0.9));
-}
-
-/* Связи и точки под-узлов */
-.dg-sub-link {
-  stroke: rgba(53, 216, 255, 0.32);
-  stroke-width: 0.1;
-  stroke-dasharray: 0.4 0.9;
-}
-
-.dg-sub-dot {
-  opacity: 0.7;
-}
-
-/* Ядро и ореол узла */
-.dg-core {
-  stroke: rgba(255, 255, 255, 0.55);
-  stroke-width: 0.22;
-}
-
-.dg-halo {
-  opacity: 0.24;
-  filter: blur(1.1px);
-}
-
-/* Цвета узлов */
-.dg-frontend { fill: #35d8ff; }
-.dg-backend { fill: #176bff; }
-.dg-ai { fill: #8b5cff; }
-.dg-integrations { fill: #3ddc97; }
-.dg-infra { fill: #ffb648; }
-.dg-core.dg-core { fill: #7cc4ff; }
-
-/* Подписи узлов — тонкие, «инженерные» */
-.dg-label {
-  fill: rgba(255, 255, 255, 0.52);
-  font-size: 1.35px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  font-family: var(--font-sans);
-}
-
-.dg-sub-label {
-  fill: rgba(255, 255, 255, 0.34);
-  font-size: 0.95px;
-  letter-spacing: 0.04em;
-  font-family: var(--font-mono, ui-monospace, monospace);
-}
-
-.dg-link-label {
-  fill: rgba(53, 216, 255, 0.3);
-  font-size: 0.85px;
-  letter-spacing: 0.14em;
-  font-family: var(--font-mono, ui-monospace, monospace);
-}
-
-/* Светлая тема: граф темнее и чуть плотнее */
-html[data-theme="light"] .dg-bg {
-  opacity: 0.7;
-}
-
-html[data-theme="light"] .dg-halo {
-  filter: blur(1.4px);
-}
-
-html[data-theme="light"] .dg-frontend { fill: #0e7490; }
-html[data-theme="light"] .dg-backend { fill: #176bff; }
-html[data-theme="light"] .dg-ai { fill: #7c3aed; }
-html[data-theme="light"] .dg-integrations { fill: #0a9e63; }
-html[data-theme="light"] .dg-infra { fill: #d97706; }
-html[data-theme="light"] .dg-core.dg-core { fill: #176bff; }
-
-html[data-theme="light"] .dg-link {
-  stroke: url(#dgLineLight);
-  opacity: 0.55;
-}
-
-html[data-theme="light"] .dg-label { fill: rgba(13, 20, 36, 0.55); }
-html[data-theme="light"] .dg-sub-label { fill: rgba(13, 20, 36, 0.4); }
-html[data-theme="light"] .dg-link-label { fill: rgba(23, 107, 255, 0.4); }
-html[data-theme="light"] .dg-sub-link { stroke: rgba(23, 107, 255, 0.28); }
-html[data-theme="light"] .dg-core {
-  stroke: rgba(255, 255, 255, 0.9);
-}
-
-/* На мобильных и тач — скрываем (иначе визуальный мусор) */
-@media (max-width: 760px), (pointer: coarse) {
-  .dg-bg { display: none; }
-}
-
-/* При reduced-motion — статичный фон без анимаций */
-@media (prefers-reduced-motion: reduce) {
-  .dg-bg { display: none; }
-  .dg-link { animation: none; }
-}
