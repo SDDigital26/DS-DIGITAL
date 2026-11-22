@@ -18,6 +18,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: "/admin/articles", label: "SEO-статьи", permission: "content" },
   { href: "/admin/testimonials", label: "Отзывы", permission: "content" },
   { href: "/admin/calculator", label: "Калькулятор", permission: "settings" },
+  { href: "/admin/knowledge", label: "База знаний AI", permission: "settings" },
   { href: "/admin/pages", label: "Контент", permission: "content" },
   { href: "/admin/media", label: "Медиа", permission: "media" },
   { href: "/admin/seo", label: "SEO", permission: "seo" },

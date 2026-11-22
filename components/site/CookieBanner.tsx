@@ -50,6 +50,7 @@ export function CookieBanner({ locale }: { locale: Locale }) {
       // Приватный режим: выбор не сохранится, но сайт продолжит работать.
     }
     document.documentElement.dataset.cookieConsent = consent;
+    window.dispatchEvent(new Event("ds:consent-change"));
     setVisible(false);
   }
 

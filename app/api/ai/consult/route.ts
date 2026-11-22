@@ -6,13 +6,16 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { fallbackTurn, persistableUserMessage, replayFallbackState } from "@/lib/ai/fallback";
 import { generateAssistantReply } from "@/lib/ai/client";
 import { getAiProviderConfig } from "@/lib/ai/provider-config";
+import { loadKnowledgeFacts } from "@/lib/ai/knowledge";
 import { enqueueLeadNotifications } from "@/lib/notifications";
 import { getSiteSettings } from "@/lib/site-settings";
 
 /**
  * POST /api/ai/consult — бесплатный сценарий-консультант.
  * Состояние/согласие восстанавливаются по серверному transcript; данные клиента
- * history/state не принимаются. Внешних LLM/API-вызовов нет.
+ * история/состояние диалога клиентом не принимаются. Внешняя LLM подключается
+ * в кабинете; до согласия и при сбое работает детерминированный сценарий.
+ * Факты берутся из базы знаний админки (только опубликованные).
  */
 const COOKIE_NAME = "ds_ai_session";
 const SESSION_TTL_MS = 24 * 60 * 60 * 1000;
@@ -172,6 +175,7 @@ export async function POST(request: NextRequest) {
       step: turn.state.step,
       scriptedReply: turn.reply,
       userMessage: parsed.data.message,
+      facts: await loadKnowledgeFacts(parsed.data.locale),
     });
     reply = generated.reply;
     mode = generated.usedAi ? "ai" : "fallback";

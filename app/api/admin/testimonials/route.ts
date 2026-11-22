@@ -3,17 +3,40 @@ import { db } from "@/lib/db";
 import { requirePermissionApi } from "@/lib/permissions";
 import { testimonialSchema } from "@/lib/validation/testimonial";
 import { revalidateTestimonials } from "@/lib/revalidate";
+import {
+  TESTIMONIALS_PER_PAGE,
+  buildTestimonialWhere,
+  parsePage,
+  parseTestimonialFilters,
+} from "@/lib/testimonial-filters";
 
-/** GET /api/admin/testimonials — все отзывы (включая неодобренные). Право: content. */
-export async function GET() {
+/** GET /api/admin/testimonials — отзывы с фильтрами и пагинацией. Право: content. */
+export async function GET(request: NextRequest) {
   const auth = await requirePermissionApi("content");
   if (auth instanceof NextResponse) return auth;
 
-  const testimonials = await db.testimonial.findMany({
-    orderBy: [{ sort: "asc" }, { createdAt: "desc" }],
-  });
+  const filters = parseTestimonialFilters(new URL(request.url).searchParams);
+  const where = buildTestimonialWhere(filters);
+  const page = parsePage(filters.page);
+  const skip = (page - 1) * TESTIMONIALS_PER_PAGE;
 
-  return NextResponse.json({ ok: true, testimonials });
+  const [total, testimonials] = await Promise.all([
+    db.testimonial.count({ where }),
+    db.testimonial.findMany({
+      where,
+      orderBy: [{ sort: "asc" }, { createdAt: "desc" }],
+      skip,
+      take: TESTIMONIALS_PER_PAGE,
+    }),
+  ]);
+
+  return NextResponse.json({
+    ok: true,
+    testimonials,
+    total,
+    page,
+    totalPages: Math.max(1, Math.ceil(total / TESTIMONIALS_PER_PAGE)),
+  });
 }
 
 /** POST /api/admin/testimonials — создать отзыв. Право: content. */

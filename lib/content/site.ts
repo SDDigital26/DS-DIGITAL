@@ -6,8 +6,8 @@ import type { Locale } from "@/lib/i18n/config";
  *
  * Запрет ТЗ §4 соблюдён: никаких вымышленных клиентов, отзывов и цифр.
  * Карточки услуг показывают пример интерфейса, а не реальный кейс.
- * Раздел KarmaRent честно сообщает, что демо появится после скриншотов
- * и разрешения на показ.
+ * Раздел KarmaRent показывает реальный публичный кейс; публикация согласована
+ * заказчиком (22.11.2026). На скриншотах — демонстрационные данные.
  */
 
 export type NavKey =
@@ -51,7 +51,7 @@ export type SiteContent = {
   };
   services: { title: string; lead: string; more: string };
   projects: { title: string; lead: string; empty: string; more: string };
-  /** Выделенная презентация главного кейса (ТЗ §6.7) — честная заглушка, пока нет разрешения. */
+  /** Выделенная презентация главного кейса (ТЗ §6.7), публикация согласована. */
   karma: {
     title: string;
     lead: string;
@@ -174,7 +174,7 @@ const RU: SiteContent = {
       { label: "RideFlow — сайт продукта", href: "https://rideflow.ac.vn/" },
       { label: "Karma Rent — сайт клиента", href: "https://karmarentsite.duckdns.org/" },
     ],
-    note: "На скриншотах — демонстрационные данные, не production. Изолированная интерактивная демо-среда готовится по отдельному согласованию.",
+    note: "На скриншотах — демонстрационные данные, не production.",
     cta: "Смотреть проекты",
   },
   technologies: {
@@ -275,7 +275,7 @@ const RU: SiteContent = {
     sections: [
       { heading: "Что такое cookie", text: "Cookie — небольшие файлы, которые сайт сохраняет в браузере. Они нужны, чтобы сайт работал и помнил ваши настройки." },
       { heading: "Необходимые cookie", text: "Сохраняют выбранный язык и сессию. Без них сайт не сможет работать корректно; они не передаются сторонним сервисам." },
-      { heading: "Аналитика", text: "Сейчас аналитика не подключена. Если мы добавим её в будущем, скрипты будут загружаться только после вашего согласия." },
+      { heading: "Аналитика", text: "Для оценки посещений и скорости сайта мы используем Vercel Analytics и Speed Insights. Скрипты загружаются только после вашего согласия; без него собираются лишь необходимые данные." },
       { heading: "Как изменить выбор", text: "Управлять cookie можно в настройках браузера или повторно открыв это уведомление." },
     ],
   },
@@ -418,7 +418,7 @@ const EN: SiteContent = {
       { label: "RideFlow — product website", href: "https://rideflow.ac.vn/" },
       { label: "Karma Rent — client website", href: "https://karmarentsite.duckdns.org/" },
     ],
-    note: "The screenshots show demo data, not production. An isolated interactive demo environment is being prepared under a separate agreement.",
+    note: "The screenshots show demo data, not production.",
     cta: "View projects",
   },
   technologies: {
@@ -519,7 +519,7 @@ const EN: SiteContent = {
     sections: [
       { heading: "What cookies are", text: "Cookies are small files a site stores in your browser. They help the site work and remember your settings." },
       { heading: "Essential cookies", text: "They store the selected language and session. The site cannot work correctly without them; they are not shared with third parties." },
-      { heading: "Analytics", text: "Analytics is not connected yet. If we add it later, scripts will load only after your consent." },
+      { heading: "Analytics", text: "We use Vercel Analytics and Speed Insights to measure visits and site speed. Their scripts load only after your consent; without it, only essential data is collected." },
       { heading: "Changing your choice", text: "You can manage cookies in your browser settings or reopen this notice." },
     ],
   },

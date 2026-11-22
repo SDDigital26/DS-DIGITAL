@@ -324,6 +324,21 @@ model AiMessage {
   conversation AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 }
 
+/** База знаний внутреннего AI-агента: редактируется в админке. */
+model AiKnowledgeItem {
+  id        String   @id @default(cuid())
+  locale    String // ru | en
+  title     String   @db.VarChar(160)
+  content   String   @db.Text
+  category  String?  @db.VarChar(80)
+  published Boolean  @default(true)
+  sort      Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([locale, published])
+}
+
 // ─────────────────────────── Пользователи / доступ ───────────────────────────
 
 model User {

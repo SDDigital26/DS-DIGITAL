@@ -10,6 +10,7 @@ import { CursorSparks } from "@/components/site/CursorSparks";
 import { AiConsultant } from "@/components/site/AiConsultant";
 import { CookieBanner } from "@/components/site/CookieBanner";
 import { getSiteSettings } from "@/lib/site-settings";
+import { AnalyticsGate } from "@/components/site/AnalyticsGate";
 import "../globals.css";
 import "../proto.css";
 
@@ -77,6 +78,8 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} className="h-full antialiased" data-effects={settings.effectsMode}>
       <body className="min-h-full">
+        {/* Метрики — только после согласия на аналитику (cookie-политика). */}
+        <AnalyticsGate />
         {/* Молния (тёмная тема) и искры+кометы (светлая тема) — вне .ds,
             чтобы overflow-x: clip не влиял на fixed-слой */}
         <Lightning mode={settings.effectsMode} />

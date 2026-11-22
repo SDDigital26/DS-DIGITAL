@@ -3,18 +3,41 @@ import { db } from "@/lib/db";
 import { requirePermissionApi } from "@/lib/permissions";
 import { projectSchema } from "@/lib/validation/project";
 import { revalidateProject } from "@/lib/revalidate";
+import {
+  PROJECTS_PER_PAGE,
+  buildProjectWhere,
+  parsePage,
+  parseProjectFilters,
+} from "@/lib/project-filters";
 
-/** GET /api/admin/projects — все кейсы с переводами и изображениями. Право: content. */
-export async function GET() {
+/** GET /api/admin/projects — кейсы с фильтрами и пагинацией. Право: content. */
+export async function GET(request: NextRequest) {
   const auth = await requirePermissionApi("content");
   if (auth instanceof NextResponse) return auth;
 
-  const projects = await db.project.findMany({
-    orderBy: [{ sort: "asc" }, { createdAt: "desc" }],
-    include: { translations: true, images: { orderBy: { sort: "asc" } } },
-  });
+  const filters = parseProjectFilters(new URL(request.url).searchParams);
+  const where = buildProjectWhere(filters);
+  const page = parsePage(filters.page);
+  const skip = (page - 1) * PROJECTS_PER_PAGE;
 
-  return NextResponse.json({ ok: true, projects });
+  const [total, projects] = await Promise.all([
+    db.project.count({ where }),
+    db.project.findMany({
+      where,
+      orderBy: [{ sort: "asc" }, { createdAt: "desc" }],
+      skip,
+      take: PROJECTS_PER_PAGE,
+      include: { translations: true, images: { orderBy: { sort: "asc" } } },
+    }),
+  ]);
+
+  return NextResponse.json({
+    ok: true,
+    projects,
+    total,
+    page,
+    totalPages: Math.max(1, Math.ceil(total / PROJECTS_PER_PAGE)),
+  });
 }
 
 /** POST /api/admin/projects — создать кейс. Право: content. */
