@@ -145,6 +145,8 @@ export default async function HomePage({
     <>
       <Preloader />
       <GhostCode />
+      {/* Фоновый граф данных — на всю страницу, ненавязчивый (ПК). */}
+      <DataGraph />
 
       <div className="hero">
         <div className="stars" />
@@ -303,7 +305,6 @@ export default async function HomePage({
               </div>
             ))}
           </div>
-          <DataGraph locale={l} />
         </div>
       </section>
 
