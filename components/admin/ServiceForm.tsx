@@ -10,6 +10,9 @@ type Translation = {
   problem: string;
   solution: string;
   benefits: string[];
+  result: string;
+  audience: string;
+  timeline: string;
   seoTitle: string;
   seoDesc: string;
 };
@@ -28,6 +31,9 @@ export type ServiceRecord = {
     problem: string;
     solution: string;
     benefits: string[];
+    result?: string | null;
+    audience?: string | null;
+    timeline?: string | null;
     seoTitle?: string | null;
     seoDesc?: string | null;
   }>;
@@ -40,6 +46,9 @@ const EMPTY: Translation = {
   problem: "",
   solution: "",
   benefits: [],
+  result: "",
+  audience: "",
+  timeline: "",
   seoTitle: "",
   seoDesc: "",
 };
@@ -53,6 +62,9 @@ function toTranslation(locale: string, raw?: ServiceRecord["translations"][numbe
     problem: raw.problem ?? "",
     solution: raw.solution ?? "",
     benefits: Array.isArray(raw.benefits) ? (raw.benefits as string[]) : [],
+    result: raw.result ?? "",
+    audience: raw.audience ?? "",
+    timeline: raw.timeline ?? "",
     seoTitle: raw.seoTitle ?? "",
     seoDesc: raw.seoDesc ?? "",
   };
@@ -196,6 +208,34 @@ export function ServiceForm({ service }: { service?: ServiceRecord }) {
           </div>
 
           <div className="flex flex-col gap-1">
+            <label className={labelClass} htmlFor={`${locale}-result`}>
+              Результат для клиента
+            </label>
+            <textarea
+              id={`${locale}-result`}
+              className={inputClass}
+              rows={3}
+              maxLength={2000}
+              value={value.result}
+              onChange={(e) => onChange({ ...value, result: e.target.value })}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className={labelClass} htmlFor={`${locale}-audience`}>
+              Кому подходит услуга
+            </label>
+            <textarea
+              id={`${locale}-audience`}
+              className={inputClass}
+              rows={3}
+              maxLength={2000}
+              value={value.audience}
+              onChange={(e) => onChange({ ...value, audience: e.target.value })}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
             <label className={labelClass} htmlFor={`${locale}-benefits`}>
               Преимущества (по одному пункту на строку)
             </label>
@@ -214,6 +254,20 @@ export function ServiceForm({ service }: { service?: ServiceRecord }) {
                     .filter(Boolean),
                 })
               }
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label className={labelClass} htmlFor={`${locale}-timeline`}>
+              Сроки (только подтверждённые; иначе блок скрыт)
+            </label>
+            <textarea
+              id={`${locale}-timeline`}
+              className={inputClass}
+              rows={2}
+              maxLength={1000}
+              value={value.timeline}
+              onChange={(e) => onChange({ ...value, timeline: e.target.value })}
             />
           </div>
 

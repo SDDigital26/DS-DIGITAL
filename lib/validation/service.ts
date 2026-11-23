@@ -13,6 +13,9 @@ export const serviceTranslationSchema = z.object({
   problem: text(4000),
   solution: text(4000),
   benefits: z.array(text(200)).max(10, "максимум 10 пунктов"),
+  result: text(2000).optional(),
+  audience: text(2000).optional(),
+  timeline: text(1000).optional(),
   seoTitle: text(70).optional(),
   seoDesc: text(200).optional(),
 });

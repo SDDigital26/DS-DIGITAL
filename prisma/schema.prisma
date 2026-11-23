@@ -77,6 +77,12 @@ model ServiceTranslation {
   problem   String  @db.Text
   solution  String  @db.Text
   benefits  Json
+  /** Результат для клиента (блок шаблона услуги). */
+  result    String? @db.Text
+  /** Кому подходит услуга. */
+  audience  String? @db.Text
+  /** Сроки — только подтверждённые, иначе блок скрыт. */
+  timeline  String? @db.Text
   seoTitle  String?
   seoDesc   String?
 

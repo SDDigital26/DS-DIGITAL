@@ -120,16 +120,18 @@ export default async function ServicePage({
   ]);
   const sectionLabels = l === "ru"
     ? {
-        breadcrumb: "Главная", problem: "Задача", solution: "Подход к решению",
+        breadcrumb: "Главная", result: "Результат для клиента", audience: "Кому подходит",
+        problem: "Задача", solution: "Подход к решению",
         features: "Возможности", benefits: "Что входит", demo: "Демонстрация",
         portfolio: "Связанные кейсы", technologies: "Технологии", process: "Процесс работы",
-        faq: "Частые вопросы", request: "Обсудить задачу", start: "Начать проект",
+        timeline: "Сроки", faq: "Частые вопросы", request: "Обсудить задачу", start: "Начать проект",
       }
     : {
-        breadcrumb: "Home", problem: "The challenge", solution: "Approach",
+        breadcrumb: "Home", result: "The result for you", audience: "Who it is for",
+        problem: "The challenge", solution: "Approach",
         features: "Capabilities", benefits: "What’s included", demo: "Demo",
         portfolio: "Related cases", technologies: "Technologies", process: "Our process",
-        faq: "FAQ", request: "Discuss your project", start: "Start a project",
+        timeline: "Timeline", faq: "FAQ", request: "Discuss your project", start: "Start a project",
       };
   const s = (await getSiteContent(l));
   const showDemo = slug === "crm-development" && settings.aiEnabled;
@@ -161,6 +163,20 @@ export default async function ServicePage({
           </Link>
         </div>
       </div>
+
+      {t.result ? (
+        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+          <h2 className="text-2xl font-semibold">{sectionLabels.result}</h2>
+          <p className="mt-3 max-w-3xl whitespace-pre-wrap text-secondary">{t.result}</p>
+        </section>
+      ) : null}
+
+      {t.audience ? (
+        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+          <h2 className="text-2xl font-semibold">{sectionLabels.audience}</h2>
+          <p className="mt-3 max-w-3xl whitespace-pre-wrap text-secondary">{t.audience}</p>
+        </section>
+      ) : null}
 
       {t.problem ? (
         <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
@@ -257,6 +273,14 @@ export default async function ServicePage({
           ))}
         </div>
       </section>
+
+      {/* ТЗ Док.2 §7.2: сроки публикуются только после подтверждения. */}
+      {t.timeline ? (
+        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+          <h2 className="text-2xl font-semibold">{sectionLabels.timeline}</h2>
+          <p className="mt-3 max-w-3xl whitespace-pre-wrap text-secondary">{t.timeline}</p>
+        </section>
+      ) : null}
 
       {/* ТЗ §8: Процесс работы — пять шагов, согласованных в ТЗ. */}
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
