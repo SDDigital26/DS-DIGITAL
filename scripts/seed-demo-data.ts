@@ -235,21 +235,28 @@ async function main() {
 
   // Тестовые контакты — заменяются владельцем в /admin/settings.
   const current = (await getSetting<Partial<SiteSettings>>(SITE_SETTINGS_KEY)) ?? {};
+  const isDemoValue = (value?: string) =>
+    !value || value.includes("DEMO") || value === "demo@example.com" || value === "DEMO_DO_NOT_USE";
   await setSetting(SITE_SETTINGS_KEY, {
     ...current,
-    telegram: "DEMO_DO_NOT_USE",
-    email: "demo@example.com",
-    whatsapp: "",
+    telegram: isDemoValue(current.telegram) ? "DEMO_DO_NOT_USE" : current.telegram,
+    email: isDemoValue(current.email) ? "demo@example.com" : current.email,
+    whatsapp: current.whatsapp && !isDemoValue(current.whatsapp) ? current.whatsapp : "",
   });
   console.log("[demo] контакты: тестовые значения (заменить в /admin/settings)");
 
   // Демо-endpoint недоступен — проверяем сценарий «уведомление не доставлено, лид сохранён».
-  await setSetting(EMAIL_PROVIDER_SETTINGS_KEY, {
-    endpoint: "https://example.invalid/email-hook",
-    from: "demo@example.com",
-    apiKey: "DEMO_DO_NOT_USE",
-  });
-  console.log("[demo] email: недоступный тестовый endpoint (заменить в /admin/settings)");
+  const currentMail = (await getSetting<{ endpoint?: string; from?: string }>(EMAIL_PROVIDER_SETTINGS_KEY)) ?? {};
+  if (!currentMail.endpoint || currentMail.endpoint.includes("example.invalid")) {
+    await setSetting(EMAIL_PROVIDER_SETTINGS_KEY, {
+      endpoint: "https://example.invalid/email-hook",
+      from: currentMail.from || "demo@example.com",
+      apiKey: "DEMO_DO_NOT_USE",
+    });
+    console.log("[demo] email: недоступный тестовый endpoint (заменить в /admin/settings)");
+  } else {
+    console.log("[demo] email: сохранён существующий endpoint");
+  }
 }
 
 main()
