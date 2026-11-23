@@ -30,8 +30,12 @@ async function main() {
     await setSetting(SITE_SETTINGS_KEY, { ...site, email, whatsapp: "" });
     const mail = (await getSetting<Partial<EmailProviderConfig>>(EMAIL_PROVIDER_SETTINGS_KEY)) ?? {};
     // Gmail SMTP уже настроен — владельцу остаётся вставить App Password в кабинете.
+    // Демо-webhook убираем, чтобы письма не уходили в недоступный example.invalid.
+    const demoEndpoint = !mail.endpoint || mail.endpoint.includes("example.invalid");
     await setSetting(EMAIL_PROVIDER_SETTINGS_KEY, {
       ...mail,
+      endpoint: demoEndpoint ? "" : mail.endpoint,
+      apiKey: demoEndpoint ? "" : mail.apiKey,
       from: email,
       smtpHost: "smtp.gmail.com",
       smtpPort: 587,
