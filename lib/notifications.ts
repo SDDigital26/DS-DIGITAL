@@ -25,9 +25,10 @@ export type LeadNotificationData = {
 /** Поставить уведомления в очередь (вызывается после успешного создания лида). */
 export async function enqueueLeadNotifications(data: LeadNotificationData): Promise<void> {
   const channels = ["email", "telegram"] as const;
-  const [telegramReady, telegramConfig] = await Promise.all([
+  const [telegramReady, telegramConfig, emailReady] = await Promise.all([
     isTelegramAvailable(),
     getTelegramConfig(),
+    isEmailConfigured(),
   ]);
 
   // Фиксируем ВСЕ каналы: настроенный — pending (будет отправлен),
@@ -37,7 +38,7 @@ export async function enqueueLeadNotifications(data: LeadNotificationData): Prom
     data: channels.map((channel) => {
       const configured =
         channel === "email"
-          ? isEmailConfigured()
+          ? emailReady
           : telegramReady && telegramConfig.notifyOnLead;
       return {
         leadId: data.leadId,

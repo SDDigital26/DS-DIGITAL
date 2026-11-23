@@ -26,7 +26,7 @@ export async function POST(
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
 
-  if (!isEmailConfigured() && !isTelegramConfigured()) {
+  if (!(await isEmailConfigured()) && !isTelegramConfigured()) {
     return NextResponse.json(
       { error: "notification provider not configured" },
       { status: 409 },

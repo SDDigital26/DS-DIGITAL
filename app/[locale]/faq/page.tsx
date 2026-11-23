@@ -4,6 +4,7 @@ import { defaultLocale, isLocale, locales, type Locale } from "@/lib/i18n/config
 import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { db } from "@/lib/db";
 import { PageHeader, PendingBlock } from "@/components/layout/PagePrimitives";
+import { JsonLd } from "@/components/site/JsonLd";
 
 // Данные из БД: правки в админке применяются без деплоя.
 export const instant = false;
@@ -47,6 +48,21 @@ export default async function FaqPage({
 
   return (
     <>
+      {items.length > 0 ? (
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            inLanguage: l,
+            mainEntity: items.map((item) => ({
+              "@type": "Question",
+              name: item.question,
+              acceptedAnswer: { "@type": "Answer", text: item.answer },
+            })),
+          }}
+        />
+      ) : null}
+
       <PageHeader locale={l} title={dict.faq.title} subtitle={dict.faq.subtitle} />
 
       {items.length === 0 ? (

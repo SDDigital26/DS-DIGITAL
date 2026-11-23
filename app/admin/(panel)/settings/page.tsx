@@ -3,6 +3,7 @@ import { getSiteSettings } from "@/lib/site-settings";
 import { SiteSettingsForm } from "@/components/admin/SiteSettingsForm";
 import { AiProviderForm } from "@/components/admin/AiProviderForm";
 import { TelegramBotForm } from "@/components/admin/TelegramBotForm";
+import { EmailProviderForm } from "@/components/admin/EmailProviderForm";
 
 export const metadata = { title: "Настройки сайта" };
 
@@ -24,6 +25,7 @@ export default async function AdminSettingsPage() {
       <SiteSettingsForm initial={settings} />
       <AiProviderForm />
       <TelegramBotForm />
+      <EmailProviderForm />
     </div>
   );
 }

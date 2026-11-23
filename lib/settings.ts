@@ -12,6 +12,8 @@ export const SEO_DEFAULTS_KEY = "seo";
 export const AI_PROVIDER_SETTINGS_KEY = "ai-provider";
 /** Секретные настройки Telegram-бота (только сервер, см. lib/integrations/telegram-config). */
 export const TELEGRAM_SETTINGS_KEY = "telegram";
+/** Секретные настройки email-уведомлений (только сервер). */
+export const EMAIL_PROVIDER_SETTINGS_KEY = "email-provider";
 
 export async function getSetting<T = unknown>(key: string): Promise<T | null> {
   const row = await db.setting.findUnique({ where: { key } });

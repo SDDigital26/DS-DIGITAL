@@ -9,6 +9,7 @@ import { getDictionary } from "@/lib/i18n/get-dictionary";
 import { getSiteContent } from "@/lib/content/site-overrides";
 import { db } from "@/lib/db";
 import { ContactForm } from "@/components/site/ContactForm";
+import { JsonLd } from "@/components/site/JsonLd";
 
 // Данные из БД + connection(): правки в админке применяются без деплоя (ТЗ §17).
 // instant = false — единственный совместимый с cacheComponents способ
@@ -135,9 +136,33 @@ export default async function ServicePage({
       };
   const s = (await getSiteContent(l));
   const showDemo = slug === "crm-development" && settings.aiEnabled;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ds-digital-ebon.vercel.app";
 
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Service",
+              name: t.title,
+              description: t.hero || t.title,
+              url: `${siteUrl}/${l}/services/${slug}`,
+              inLanguage: l,
+              provider: { "@type": "Organization", name: "DS DIGITAL", url: siteUrl },
+            },
+            {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: "DS DIGITAL", item: `${siteUrl}/${l}` },
+                { "@type": "ListItem", position: 2, name: "Services", item: `${siteUrl}/${l}/services` },
+                { "@type": "ListItem", position: 3, name: t.title },
+              ],
+            },
+          ],
+        }}
+      />
       <div className="mx-auto max-w-7xl px-4 pb-8 pt-16 sm:px-6">
         <nav aria-label={l === "ru" ? "Навигационная цепочка" : "Breadcrumb"} className="mb-6 text-sm text-secondary">
           <Link href={`/${l}`}>{sectionLabels.breadcrumb}</Link>

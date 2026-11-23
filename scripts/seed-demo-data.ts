@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { db } from "../lib/db";
-import { getSetting, setSetting, SITE_SETTINGS_KEY } from "../lib/settings";
+import { getSetting, setSetting, SITE_SETTINGS_KEY, EMAIL_PROVIDER_SETTINGS_KEY } from "../lib/settings";
 import type { SiteSettings } from "../lib/site-settings";
 
 /**
@@ -208,6 +208,14 @@ async function main() {
     whatsapp: "",
   });
   console.log("[demo] контакты: тестовые значения (заменить в /admin/settings)");
+
+  // Демо-endpoint недоступен — проверяем сценарий «уведомление не доставлено, лид сохранён».
+  await setSetting(EMAIL_PROVIDER_SETTINGS_KEY, {
+    endpoint: "https://example.invalid/email-hook",
+    from: "demo@example.com",
+    apiKey: "DEMO_DO_NOT_USE",
+  });
+  console.log("[demo] email: недоступный тестовый endpoint (заменить в /admin/settings)");
 }
 
 main()
