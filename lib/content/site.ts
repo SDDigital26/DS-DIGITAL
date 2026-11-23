@@ -615,6 +615,8 @@ export const FORM_LABELS: Record<
     send: string;
     sending: string;
     fillAll: string;
+    tooShort: string;
+    badContact: string;
     consentRequired: string;
     sent: string;
     sentNote: string;
@@ -631,6 +633,8 @@ export const FORM_LABELS: Record<
     send: "Отправить заявку",
     sending: "Отправляем…",
     fillAll: "Заполните имя, контакт и описание задачи.",
+    tooShort: "Опишите задачу хотя бы в двух словах — например: «нужен сайт для студии».",
+    badContact: "Укажите рабочий контакт: email, Telegram (@ник) или телефон.",
     consentRequired: "Нужно согласие на связь.",
     sent: "Заявка отправлена",
     sentNote: "Мы ответим по указанному контакту.",
@@ -646,6 +650,8 @@ export const FORM_LABELS: Record<
     send: "Send request",
     sending: "Sending…",
     fillAll: "Fill in your name, a contact and a short description.",
+    tooShort: "Describe the task in a few words — for example: “I need a website for my studio”.",
+    badContact: "Add a valid contact: email, Telegram (@handle) or phone.",
     consentRequired: "Please confirm you agree to be contacted.",
     sent: "Request sent",
     sentNote: "We will reply using the contact you provided.",

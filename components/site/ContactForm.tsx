@@ -24,7 +24,22 @@ function contactFields(raw: string): Record<string, string> {
 
   if (/^[+\d][\d\s()-]{6,}$/.test(value)) return { whatsapp: value };
 
+  // Слишком короткий/непонятный контакт — форма попросит исправить.
+  if (value.length < 4) return {};
+
   return { telegram: value.slice(0, 64) };
+}
+
+/** Понятный текст вместо технического сообщения API. */
+function localizeIssue(message: string, locale: Locale): string {
+  const lower = message.toLowerCase();
+  if (lower.includes("description too short") || message.includes("подробнее")) {
+    return FORM_LABELS[locale].tooShort;
+  }
+  if (lower.includes("at least one contact")) return FORM_LABELS[locale].badContact;
+  if (lower.includes("invalid email")) return FORM_LABELS[locale].badContact;
+  if (lower.includes("consent")) return FORM_LABELS[locale].consentRequired;
+  return FORM_LABELS[locale].failed;
 }
 
 /**
@@ -66,6 +81,17 @@ export function ContactForm({ locale, defaultService }: { locale: Locale; defaul
       setStatus("error");
       return;
     }
+    if (message.trim().length < 3) {
+      setError(t.tooShort);
+      setStatus("error");
+      return;
+    }
+    const contacts = contactFields(contact);
+    if (Object.keys(contacts).length === 0) {
+      setError(t.badContact);
+      setStatus("error");
+      return;
+    }
     if (!consent) {
       setError(t.consentRequired);
       setStatus("error");
@@ -85,7 +111,7 @@ export function ContactForm({ locale, defaultService }: { locale: Locale; defaul
       landingPath: window.location.pathname,
       website: "",
       ...(estimate?.snapshot ? { calculatorSnapshot: estimate.snapshot } : {}),
-      ...contactFields(contact),
+      ...contacts,
     };
 
     try {
@@ -111,7 +137,7 @@ export function ContactForm({ locale, defaultService }: { locale: Locale; defaul
       const body = (await res.json().catch(() => null)) as
         | { error?: string; issues?: Array<{ message: string }> }
         | null;
-      setError(body?.issues?.length ? body.issues.map((i) => i.message).join("; ") : t.failed);
+      setError(body?.issues?.length ? body.issues.map((i) => localizeIssue(i.message, locale)).join(" ") : t.failed);
       setStatus("error");
     } catch {
       setError(t.failed);

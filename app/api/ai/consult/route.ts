@@ -3,12 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { fallbackTurn, persistableUserMessage, replayFallbackState } from "@/lib/ai/fallback";
+import { fallbackTurn, isKnowledgeQuestion, persistableUserMessage, replayFallbackState } from "@/lib/ai/fallback";
 import { generateAssistantReply } from "@/lib/ai/client";
 import { getAiProviderConfig } from "@/lib/ai/provider-config";
-import { loadKnowledgeFacts, loadPricingFacts } from "@/lib/ai/knowledge";
+import { findKnowledgeAnswer, loadKnowledgeFacts, loadPricingFacts } from "@/lib/ai/knowledge";
 import { askScenarioWebhook } from "@/lib/ai/webhook";
-import { enqueueLeadNotifications } from "@/lib/notifications";
+import { enqueueLeadNotifications, flushLeadNotifications } from "@/lib/notifications";
 import { getSiteSettings } from "@/lib/site-settings";
 
 /**
@@ -167,12 +167,20 @@ export async function POST(request: NextRequest) {
   // переформулируют ответ детерминированного сценария. До согласия данные
   // никуда не отправляются; согласие/шаги/создание заявки остаются на сервере.
   let reply = turn.reply;
-  let mode: "fallback" | "ai" = "fallback";
+  let mode: "fallback" | "ai" | "knowledge" = "fallback";
   const provider = await getAiProviderConfig();
-  if (state.consent && turn.state.step !== "done") {
-    const locale = parsed.data.locale;
+  const locale = parsed.data.locale;
+
+  // 1) Сначала — единая база знаний. Если ответ найден, отдаём его напрямую:
+  // это гарантирует точные услуги/цены/контакты и не тратит вызовы LLM.
+  const knowledgeAnswer = await findKnowledgeAnswer(locale, parsed.data.message);
+  if (knowledgeAnswer && (isKnowledgeQuestion(parsed.data.message) || state.step === "consent")) {
+    reply = `${knowledgeAnswer.answer}\n\n${turn.reply}`.trim();
+    mode = "knowledge";
+  } else if (state.consent && turn.state.step !== "done") {
+    // 2) LLM переформулирует сценарий, используя факты из базы по запросу.
     const facts = [
-      ...(await loadKnowledgeFacts(locale)),
+      ...(await loadKnowledgeFacts(locale, parsed.data.message)),
       ...(await loadPricingFacts(locale)),
     ];
 
@@ -263,7 +271,7 @@ export async function POST(request: NextRequest) {
       await tx.aiMessage.createMany({
         data: [
           { conversationId: session.id, role: "user", content: savedUserMessage },
-          { conversationId: session.id, role: "assistant", content: turn.reply },
+          { conversationId: session.id, role: "assistant", content: reply },
         ],
       });
       return { leadId, created: Boolean(leadId) };
@@ -276,6 +284,7 @@ export async function POST(request: NextRequest) {
         description: turn.lead?.description ?? "",
         service: turn.lead?.service,
       }).catch(() => undefined);
+      await flushLeadNotifications(result.leadId).catch(() => undefined);
     }
 
     return withSessionCookie(

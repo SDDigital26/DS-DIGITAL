@@ -339,9 +339,14 @@ model AiKnowledgeItem {
   category  String?  @db.VarChar(80)
   published Boolean  @default(true)
   sort      Int      @default(0)
+  /** Источник факта: manual | service | article | faq | pricing | contacts. */
+  source    String?  @db.VarChar(40)
+  /** Стабильный ключ источника для повторной синхронизации (locale + sourceKey). */
+  sourceKey String?  @db.VarChar(200)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@unique([locale, sourceKey])
   @@index([locale, published])
 }
 

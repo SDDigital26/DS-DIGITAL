@@ -72,6 +72,23 @@ function isRestart(value: string): boolean {
   return /^(заново|reset|start over|restart|начать заново)$/i.test(value.trim());
 }
 
+/**
+ * Похоже ли сообщение на вопрос о услугах/ценах, а не на описание задачи.
+ * Такие сообщения не должны засчитываться как ответ шага: сначала агент
+ * отвечает по базе знаний, затем возвращает пользователя к сценарию.
+ */
+export function isKnowledgeQuestion(value: string): boolean {
+  const text = value.trim().toLowerCase();
+  if (!text || text.length > 160) return false;
+  if (/(нужен|нужна|нужно|хочу|сделайте|разработайте|требуется|need|want|build|create|make)/.test(text)) {
+    return false;
+  }
+  if (text.includes("?")) return true;
+  return /^(а\s+)?(что|как|сколько|какие|какой|какая|можно|есть ли|вы делаете|расскажите|почему|зачем|what|how|which|why|can|do you|does|is there|tell me)\b/.test(
+    text,
+  );
+}
+
 /** Для шага до согласия хранит только нормализованный yes, reset или нейтральный маркер. */
 export function persistableUserMessage(state: ConsultState, next: ConsultState, message: string): string {
   if (state.consent || state.step !== "consent") return message;
@@ -94,6 +111,12 @@ export function fallbackTurn(state: ConsultState, message: string): FallbackTurn
     next.consent = true;
     next.step = "task";
     return { reply: t.taskQuestion, state: next };
+  }
+
+  // Вопрос о услугах/ценах не считается ответом шага — отвечает база знаний,
+  // а сценарий остаётся на том же шаге.
+  if (isKnowledgeQuestion(text)) {
+    return { reply: stepPrompt(next), state: next };
   }
 
   if (next.step === "task") {
@@ -126,4 +149,20 @@ export function fallbackTurn(state: ConsultState, message: string): FallbackTurn
 /** Восстанавливает состояние только по серверной истории сообщений пользователя. */
 export function replayFallbackState(locale: Locale, userMessages: string[]): ConsultState {
   return userMessages.reduce((state, message) => fallbackTurn(state, message).state, initialState(locale));
+}
+
+/**
+ * Подсказка текущего шага без изменения состояния.
+ * Нужна, когда агент отвечает на вопрос из базы знаний и возвращает
+ * пользователя к сценарию (ТЗ §6.14: шаги и согласие — только на сервере).
+ */
+export function stepPrompt(state: ConsultState): string {
+  const t = TEXT[state.locale];
+  if (state.step === "consent") return t.consentAsk;
+  if (state.step === "task") return t.taskQuestion;
+  if (state.step === "service") {
+    return `${t.serviceQuestion} ${t.serviceList} ${SERVICES_HINT[state.locale].join(", ")}.`;
+  }
+  if (state.step === "contact") return t.contactQuestion;
+  return t.done;
 }

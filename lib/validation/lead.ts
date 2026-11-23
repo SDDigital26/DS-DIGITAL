@@ -18,8 +18,8 @@ export const leadSchema = z
     description: z
       .string()
       .trim()
-      .min(10, "description too short")
-      .max(5000, "description too long"),
+      .min(3, "Опишите задачу чуть подробнее (минимум 3 символа)")
+      .max(5000, "Описание слишком длинное (максимум 5000 символов)"),
     source: z.enum(["form", "calculator", "ai", "ai-consultant", "contact"]).default("form"),
     // UTM / кампании
     utmSource: z.string().trim().max(200).optional(),

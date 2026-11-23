@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { leadSchema } from "@/lib/validation/lead";
-import { enqueueLeadNotifications } from "@/lib/notifications";
+import { enqueueLeadNotifications, flushLeadNotifications } from "@/lib/notifications";
 
 /**
  * POST /api/leads — приём публичной формы заявки (Док.2 §14).
@@ -112,6 +112,11 @@ async function createLead(data: LeadCreateInput, idempotencyKey: string | null |
     service: lead.service ?? undefined,
   }).catch((e) => {
     console.error("[leads] enqueue notifications failed:", e instanceof Error ? e.name : "unknown");
+  });
+
+  // Не ждём cron: сразу шлём в Telegram/на почту, чтобы менеджер увидел лид.
+  await flushLeadNotifications(lead.id).catch((e) => {
+    console.error("[leads] flush notifications failed:", e instanceof Error ? e.name : "unknown");
   });
 
   return lead;

@@ -3,12 +3,13 @@ import { processDueNotifications } from "@/lib/notifications";
 import { db } from "@/lib/db";
 
 /**
- * POST /api/cron/notifications — обработка очереди уведомлений.
- * Защищена общим секретом (CRON_SECRET); без него — 401.
- * Роль/tenant не применимы: служебный роут, не публичный.
+ * /api/cron/notifications — добирает недоставленные уведомления.
+ * Защита: Bearer-секрет (CRON_SECRET); без него — 401.
+ * Vercel Cron вызывает GET с заголовком Authorization: Bearer <CRON_SECRET>,
+ * ручной вызов из админки/скриптов может использовать POST или x-cron-secret.
  */
 
-export async function POST(request: NextRequest) {
+async function handle(request: NextRequest) {
   const secret = process.env.CRON_SECRET;
   const provided =
     request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ??
@@ -27,4 +28,12 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: "processing failed" }, { status: 500 });
   }
+}
+
+export async function GET(request: NextRequest) {
+  return handle(request);
+}
+
+export async function POST(request: NextRequest) {
+  return handle(request);
 }

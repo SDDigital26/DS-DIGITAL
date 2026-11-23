@@ -9,6 +9,7 @@ import {
   type KnowledgeFilters,
 } from "@/lib/ai/knowledge";
 import { KnowledgeDeleteButton } from "@/components/admin/KnowledgeDeleteButton";
+import { KnowledgeSyncButton } from "@/components/admin/KnowledgeSyncButton";
 
 // Динамический раздел: данные из БД и searchParams (Next 16 cacheComponents)
 export const instant = false;
@@ -56,12 +57,16 @@ export default async function AdminKnowledgePage({
         <div>
           <h1 className="text-2xl font-semibold">База знаний AI</h1>
           <p className="mt-1 text-sm text-secondary">
-            Факты для внутреннего агента · всего: {total}. Ключ API настраивается рядом — в «Настройках».
+            Единая база знаний агента · всего: {total}. Сюда же переносятся услуги, статьи блога,
+            FAQ, цены и контакты с сайта. Ключ API — в «Настройках».
           </p>
         </div>
-        <Link href="/admin/knowledge/new" className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent/85">
-          Добавить факт
-        </Link>
+        <div className="flex flex-wrap items-start gap-2">
+          <KnowledgeSyncButton />
+          <Link href="/admin/knowledge/new" className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent/85">
+            Добавить факт
+          </Link>
+        </div>
       </header>
 
       <form method="get" className="grid gap-3 rounded-2xl border border-white/10 bg-surface p-4 sm:grid-cols-2 lg:grid-cols-4">

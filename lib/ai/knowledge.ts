@@ -3,9 +3,16 @@ import { db } from "@/lib/db";
 import { parsePage } from "@/lib/lead-filters";
 
 /**
- * База знаний внутреннего AI-агента.
- * В промпт попадают только опубликованные факты нужного языка,
- * ограниченного объёма — модель не должна «думать» за бизнес (ТЗ §4).
+ * База знаний AI-агента.
+ *
+ * Одна таблица `AiKnowledgeItem` — единственный источник фактов для ответов.
+ * В неё попадают ручные факты из `/admin/knowledge` и автоматическая
+ * синхронизация с сайта (`lib/ai/knowledge-sync.ts`): услуги, статьи блога,
+ * FAQ, цены и контакты.
+ *
+ * Ответ строится так: сначала поиск по базе (retrieval), затем — если факт
+ * найден — прямой ответ из базы; LLM подключается только для переформулировки
+ * или когда в базе нет ответа (ТЗ §4: никаких выдуманных фактов).
  */
 export type KnowledgeFilters = {
   locale?: string;
@@ -16,7 +23,7 @@ export type KnowledgeFilters = {
 
 export const KNOWLEDGE_PER_PAGE = 20;
 export const AI_KNOWLEDGE_MAX_FACTS = 6;
-export const AI_KNOWLEDGE_FACT_CHARS = 420;
+export const AI_KNOWLEDGE_FACT_CHARS = 700;
 export { parsePage };
 
 function get(
@@ -66,14 +73,192 @@ export function buildKnowledgeWhere(
   return where;
 }
 
-/** Короткие факты для системного промпта (не более 6 × 420 символов). */
-export async function loadKnowledgeFacts(locale: "ru" | "en"): Promise<string[]> {
-  const items = await db.aiKnowledgeItem.findMany({
-    where: buildKnowledgeWhere({ locale }, true),
-    orderBy: [{ sort: "asc" }, { createdAt: "desc" }],
-    take: AI_KNOWLEDGE_MAX_FACTS,
-    select: { title: true, content: true, category: true },
-  });
+type KnowledgeRow = {
+  id: string;
+  title: string;
+  content: string;
+  category: string | null;
+  source: string | null;
+  sort: number;
+};
+
+type Intent = "services" | "process" | "contacts" | "pricing" | null;
+
+/** Намерение вопроса — помогает выбрать правильный тип факта. */
+function detectIntent(query: string): Intent {
+  const q = query.toLowerCase();
+  if (/(услуг|направлен|что вы делаете|services|what do you (do|offer))/.test(q)) return "services";
+  if (/(как.*работ|процесс|этап|process|how do you work|workflow)/.test(q)) return "process";
+  if (/(контакт|связаться|написать|почт|телефон|contact|reach|email)/.test(q)) return "contacts";
+  if (/(цен|стоит|стоимость|бюджет|price|cost|budget)/.test(q)) return "pricing";
+  return null;
+}
+
+const STOP_WORDS = new Set([
+  "что", "как", "для", "или", "мне", "это", "его", "она", "они", "есть", "можно",
+  "нужен", "нужна", "нужно", "хочу", "надо", "вас", "ваш", "ваши", "про", "при",
+  "чем", "кто", "где", "когда", "почему", "зачем", "какой", "какие", "какая",
+  "подскажите", "пожалуйста", "скажите", "расскажите", "делаете", "делать",
+  "the", "and", "for", "you", "your", "can", "what", "how", "with", "need",
+  "does", "are", "have", "would", "could", "please", "tell", "about",
+]);
+
+/** Грубая нормализация: первые 5 символов ловят большинство словоформ RU/EN. */
+function stem(word: string): string {
+  return word.length > 5 ? word.slice(0, 5) : word;
+}
+
+function tokens(text: string): string[] {
+  return text
+    .toLowerCase()
+    .replace(/[^a-zа-яё0-9]+/gi, " ")
+    .split(/\s+/)
+    .filter((word) => word.length >= 3 && !STOP_WORDS.has(word))
+    .map(stem)
+    .slice(0, 24);
+}
+
+function scoreRow(
+  row: KnowledgeRow,
+  queryTokens: string[],
+  phrase: string,
+  intent: Intent,
+): number {
+  const title = row.title.toLowerCase();
+  const category = (row.category ?? "").toLowerCase();
+  const content = row.content.toLowerCase();
+  let score = 0;
+
+  if (phrase.length >= 6 && title.includes(phrase)) score += 6;
+
+  for (const token of queryTokens) {
+    if (title.includes(token)) score += 4;
+    if (category.includes(token)) score += 2;
+    const first = content.indexOf(token);
+    if (first >= 0) {
+      score += 1;
+      if (content.indexOf(token, first + 1) >= 0) score += 1;
+    }
+  }
+
+  // Подсказка по намерению: процесс, контакты, цены, услуги.
+  if (intent === "process" && row.source === "process") score += 8;
+  if (intent === "contacts" && row.source === "contacts") score += 8;
+  if (intent === "pricing" && (row.source === "pricing" || row.source === "faq")) score += 4;
+  if (intent === "services" && row.source === "service") score += 4;
+
+  // Свежие/важные факты чуть выше при равенстве очков.
+  return score + Math.max(0, 5 - row.sort / 100);
+}
+
+/** Ранжированный поиск по базе знаний (без внешних вызовов). */
+export async function searchKnowledge(
+  locale: "ru" | "en",
+  query: string,
+  limit = AI_KNOWLEDGE_MAX_FACTS,
+): Promise<Array<KnowledgeRow & { score: number }>> {
+  const rows = await db.aiKnowledgeItem
+    .findMany({
+      where: { locale, published: true },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        category: true,
+        source: true,
+        sort: true,
+      },
+    })
+    .catch(() => []);
+
+  if (!rows.length) return [];
+
+  const queryTokens = tokens(query);
+  const phrase = query.toLowerCase().replace(/[^a-zа-яё0-9]+/gi, " ").trim();
+  const intent = detectIntent(query);
+  if (!queryTokens.length) {
+    return rows
+      .slice()
+      .sort((a, b) => a.sort - b.sort)
+      .slice(0, limit)
+      .map((row) => ({ ...row, score: 0 }));
+  }
+
+  const scored = rows
+    .map((row) => ({ ...row, score: scoreRow(row, queryTokens, phrase, intent) }))
+    .filter((row) => row.score >= 4)
+    .sort((a, b) => b.score - a.score);
+
+  if (scored.length) return scored.slice(0, limit);
+
+  // Нет совпадений — отдаём базовые факты о компании, чтобы агент не молчал.
+  return rows
+    .filter((row) => row.sort <= 10)
+    .sort((a, b) => a.sort - b.sort)
+    .slice(0, Math.min(3, limit))
+    .map((row) => ({ ...row, score: 0 }));
+}
+
+/** Готовый ответ из базы знаний, если совпадение достаточно уверенное. */
+export async function findKnowledgeAnswer(
+  locale: "ru" | "en",
+  query: string,
+): Promise<{ title: string; answer: string; source: string | null; score: number } | null> {
+  // «Какие услуги вы делаете?» — отвечаем списком всех услуг, а не одной.
+  if (detectIntent(query) === "services") {
+    const services = await db.aiKnowledgeItem
+      .findMany({
+        where: { locale, published: true, source: "service" },
+        orderBy: { sort: "asc" },
+        select: { title: true, content: true },
+        take: 12,
+      })
+      .catch(() => []);
+    if (services.length) {
+      const list = services
+        .map((service) => {
+          const name = service.title.replace(/^(Услуга|Service):\s*/i, "");
+          return `• ${name} — ${firstSentence(service.content)}`;
+        })
+        .join("\n")
+        .slice(0, 900);
+      return {
+        title: locale === "ru" ? "Услуги DS DIGITAL" : "DS DIGITAL services",
+        answer: list,
+        source: "service",
+        score: 10,
+      };
+    }
+  }
+
+  const [best] = await searchKnowledge(locale, query, 1);
+  if (!best || best.score < 4) return null;
+
+  const content = best.content.trim();
+  const answer =
+    content.length <= 700
+      ? content
+      : `${content.slice(0, 700).replace(/\s+\S*$/, "")}…`;
+
+  return { title: best.title, answer, source: best.source, score: best.score };
+}
+
+/** Первое предложение факта — для компактных списков услуг. */
+function firstSentence(text: string, max = 110): string {
+  const trimmed = text.trim();
+  const end = trimmed.search(/[.!?](\s|$)/);
+  const sentence = end > 20 ? trimmed.slice(0, end + 1) : trimmed;
+  return sentence.length > max ? `${sentence.slice(0, max).replace(/\s+\S*$/, "")}…` : sentence;
+}
+
+/** Факты для промпта LLM: при наличии вопроса — релевантные, иначе базовые. */
+export async function loadKnowledgeFacts(
+  locale: "ru" | "en",
+  query?: string,
+): Promise<string[]> {
+  const items = query?.trim()
+    ? await searchKnowledge(locale, query)
+    : await searchKnowledge(locale, "", AI_KNOWLEDGE_MAX_FACTS);
 
   return items.map((item) => {
     const head = item.category ? `[${item.category}] ${item.title}` : item.title;
@@ -83,8 +268,8 @@ export async function loadKnowledgeFacts(locale: "ru" | "en"): Promise<string[]>
 }
 
 /**
- * Актуальные цены из калькулятора — их агент может назвать как ориентир.
- * Источник истины — админка; дисклеймер из настроек обязательно уходит в промпт.
+ * Цены из калькулятора — всегда актуальные значения из БД.
+ * Формат — ориентир, не публичная оферта; дисклеймер добавляется отдельным фактом.
  */
 export async function loadPricingFacts(locale: "ru" | "en"): Promise<string[]> {
   const [rules, config] = await Promise.all([
@@ -101,12 +286,12 @@ export async function loadPricingFacts(locale: "ru" | "en"): Promise<string[]> {
   const list = rules
     .map((r) => `${r.label}: $${r.price}`)
     .join("; ")
-    .slice(0, 700);
+    .slice(0, 900);
   const base = typeof formula.basePrice === "number" ? ` Base: $${formula.basePrice}.` : "";
 
   const prefix =
     locale === "ru"
-      ? `Тарифы из калькулятора (USD, ориентир для расчёта):${base} ${list}.`
+      ? `Цены из калькулятора (USD, ориентир, не финальная смета):${base} ${list}.`
       : `Prices from the calculator (USD, estimate only):${base} ${list}.`;
 
   const disclaimer = (config?.disclaimer ?? "").trim().slice(0, 240);

@@ -34,9 +34,13 @@ describe("leadSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("отклоняет слишком короткое описание", () => {
-    const result = leadSchema.safeParse({ ...base, description: "Сайт" });
+  it("отклоняет слишком короткое описание (< 3 символов)", () => {
+    const result = leadSchema.safeParse({ ...base, description: "Хм" });
     expect(result.success).toBe(false);
+  });
+
+  it("принимает короткое, но осмысленное описание (от 3 символов)", () => {
+    expect(leadSchema.safeParse({ ...base, description: "Сайт" }).success).toBe(true);
   });
 
   it("honeypot-поле website: непустое значение — признак бота", () => {

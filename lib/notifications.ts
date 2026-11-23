@@ -8,7 +8,8 @@ import { getTelegramConfig } from "@/lib/integrations/telegram-config";
  *
  * Принцип: заявка сохраняется ТРАНЗАКЦИОННО ДО постановки уведомлений.
  * Уведомления — best effort: сбой почты/Telegram не должен терять лид.
- * Retry: exponential backoff, максимум MAX_ATTEMPTS, дальше failed.
+ * После постановки в очередь сразу пробуем доставить (flushLeadNotifications),
+ * а cron добирает недоставленное с exponential backoff.
  */
 
 const MAX_ATTEMPTS = 5;
@@ -37,9 +38,7 @@ export async function enqueueLeadNotifications(data: LeadNotificationData): Prom
   await db.notificationLog.createMany({
     data: channels.map((channel) => {
       const configured =
-        channel === "email"
-          ? emailReady
-          : telegramReady && telegramConfig.notifyOnLead;
+        channel === "email" ? emailReady : telegramReady && telegramConfig.notifyOnLead;
       return {
         leadId: data.leadId,
         channel,
@@ -53,10 +52,23 @@ export async function enqueueLeadNotifications(data: LeadNotificationData): Prom
 }
 
 /**
- * Обработать один due-батч уведомлений.
- * Вызывается из cron-ish эндпоинта /api/cron/notifications (защищён секретом).
+ * Сразу доставить уведомления по конкретной заявке, не дожидаясь cron.
+ * Нужно, чтобы менеджер получал лид в Telegram/на почту в ту же секунду.
+ * Ошибки не пробрасываются: заявка уже сохранена, остаток доберёт cron.
  */
-export async function processDueNotifications(limit = 20): Promise<{ sent: number; failed: number }> {
+export async function flushLeadNotifications(
+  leadId: string,
+): Promise<{ sent: number; failed: number }> {
+  const pending = await db.notificationLog
+    .findMany({ where: { leadId, status: "pending" }, include: { lead: true } })
+    .catch(() => []);
+  return deliverBatch(pending);
+}
+
+/** Обработать один due-батч уведомлений (вызывается из /api/cron/notifications). */
+export async function processDueNotifications(
+  limit = 20,
+): Promise<{ sent: number; failed: number }> {
   const due = await db.notificationLog.findMany({
     where: {
       status: "pending",
@@ -66,17 +78,43 @@ export async function processDueNotifications(limit = 20): Promise<{ sent: numbe
     orderBy: { createdAt: "asc" },
     include: { lead: true },
   });
+  return deliverBatch(due);
+}
 
+type PendingNotification = {
+  id: string;
+  channel: string;
+  attempts: number;
+  lead: {
+    name: string | null;
+    description: string;
+    service: string | null;
+    budget: string | null;
+    language: string;
+    source: string;
+    email: string | null;
+    whatsapp: string | null;
+    telegram: string | null;
+  };
+};
+
+async function deliverBatch(items: PendingNotification[]): Promise<{ sent: number; failed: number }> {
   let sent = 0;
   let failed = 0;
 
-  for (const item of due) {
-    const result = await deliver(item.channel, item.leadId, item.lead);
+  for (const item of items) {
+    const result = await deliver(item.channel, item.lead);
 
     if (result.ok) {
       await db.notificationLog.update({
         where: { id: item.id },
-        data: { status: "sent", attempts: { increment: 1 }, sentAt: new Date(), lastError: null, nextRetryAt: null },
+        data: {
+          status: "sent",
+          attempts: { increment: 1 },
+          sentAt: new Date(),
+          lastError: null,
+          nextRetryAt: null,
+        },
       });
       sent += 1;
       continue;
@@ -86,14 +124,23 @@ export async function processDueNotifications(limit = 20): Promise<{ sent: numbe
     if (attempts >= MAX_ATTEMPTS) {
       await db.notificationLog.update({
         where: { id: item.id },
-        data: { status: "failed", attempts, lastError: result.error ?? "unknown", nextRetryAt: null },
+        data: {
+          status: "failed",
+          attempts,
+          lastError: result.error ?? "unknown",
+          nextRetryAt: null,
+        },
       });
       failed += 1;
     } else {
       const delay = BASE_DELAY_MS * 2 ** (attempts - 1);
       await db.notificationLog.update({
         where: { id: item.id },
-        data: { attempts, lastError: result.error ?? "unknown", nextRetryAt: new Date(Date.now() + delay) },
+        data: {
+          attempts,
+          lastError: result.error ?? "unknown",
+          nextRetryAt: new Date(Date.now() + delay),
+        },
       });
     }
   }
@@ -103,32 +150,36 @@ export async function processDueNotifications(limit = 20): Promise<{ sent: numbe
 
 async function deliver(
   channel: string,
-  _leadId: string,
-  lead: {
-    name: string | null;
-    description: string;
-    service: string | null;
-    language: string;
-    email: string | null;
-  },
+  lead: PendingNotification["lead"],
 ): Promise<{ ok: boolean; error?: string }> {
-  // Сообщение без лишних PII: имя/контакт нужен только для email-ответа,
-  // в Telegram уведомлении идём по номеру заявки (ТЗ §21.14).
+  const contacts = [
+    lead.telegram ? `Telegram: @${lead.telegram.replace(/^@/, "")}` : null,
+    lead.whatsapp ? `WhatsApp: ${lead.whatsapp}` : null,
+    lead.email ? `Email: ${lead.email}` : null,
+  ].filter(Boolean);
+
+  // Внутреннее уведомление команде: контакты нужны, чтобы ответить клиенту.
+  // В логи/аналитику эти данные не пишем (ТЗ §21.14).
   const summary = [
-    `New lead #${_leadId.slice(-6)}`,
-    lead.name ? `Name: ${lead.name}` : null,
-    lead.service ? `Service: ${lead.service}` : null,
-    `Language: ${lead.language}`,
-    `Description: ${lead.description.slice(0, 500)}`,
+    "🔔 Новая заявка DS DIGITAL",
+    lead.name ? `Имя: ${lead.name}` : null,
+    lead.service ? `Услуга: ${lead.service}` : null,
+    lead.budget ? `Бюджет: ${lead.budget}` : null,
+    contacts.length ? `Связь: ${contacts.join(" · ")}` : null,
+    `Язык: ${lead.language}`,
+    `Источник: ${lead.source}`,
+    "",
+    lead.description.slice(0, 1200),
   ]
-    .filter(Boolean)
+    .filter((line) => line !== null)
     .join("\n");
 
   if (channel === "email") {
-    if (!lead.email) return { ok: false, error: "lead has no email" };
+    const to = process.env.LEADS_NOTIFY_EMAIL || lead.email;
+    if (!to) return { ok: false, error: "lead has no email and LEADS_NOTIFY_EMAIL is empty" };
     return sendEmail({
-      to: process.env.LEADS_NOTIFY_EMAIL || lead.email,
-      subject: "DS DIGITAL — new lead",
+      to,
+      subject: `DS DIGITAL — новая заявка${lead.name ? `: ${lead.name}` : ""}`,
       text: summary,
     });
   }

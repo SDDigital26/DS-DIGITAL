@@ -62,4 +62,22 @@ describe("free consultant fallback", () => {
     expect(result.state).toEqual(initialState("en"));
     expect(result.lead).toBeUndefined();
   });
+
+  it("answers a knowledge question without advancing the task step", () => {
+    const consent = fallbackTurn(initialState("ru"), "да");
+    const question = fallbackTurn(consent.state, "Сколько стоит сайт?");
+
+    expect(question.state.step).toBe("task");
+    expect(question.state.task).toBe("");
+    expect(question.lead).toBeUndefined();
+    expect(replayFallbackState("ru", ["да", "Сколько стоит сайт?"]).step).toBe("task");
+  });
+
+  it("counts a task description with a question as the task, not as a question", () => {
+    const consent = fallbackTurn(initialState("ru"), "да");
+    const task = fallbackTurn(consent.state, "Нужен сайт для студии, сколько будет стоить?");
+
+    expect(task.state.step).toBe("service");
+    expect(task.state.task).toContain("сайт");
+  });
 });

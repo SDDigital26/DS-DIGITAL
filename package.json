@@ -10,6 +10,7 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "perf:budget": "node scripts/perf-budget.mjs",
     "test:watch": "vitest",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
@@ -20,6 +21,7 @@
     "seed:calculator": "tsx scripts/seed-calculator.ts",
     "seed:articles": "tsx scripts/seed-articles.ts && tsx scripts/seed-articles-more.ts && tsx scripts/seed-articles-final.ts",
     "seed:knowledge": "tsx scripts/seed-knowledge.ts",
+    "knowledge:sync": "tsx scripts/seed-knowledge.ts",
     "seed:demo": "tsx scripts/seed-demo-data.ts",
     "settings:apply-provided": "tsx scripts/apply-provided-settings.ts",
     "pages:build": "node scripts/build-gh-pages.mjs"

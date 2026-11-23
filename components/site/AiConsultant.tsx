@@ -15,6 +15,7 @@ const TEXT = {
     cancel: "Отмена",
     close: "Закрыть",
     greeting: "Перед началом нужно согласие: описание задачи и контакт, если вы их предоставите, будут обработаны для подготовки заявки и передачи менеджеру DS DIGITAL. Напишите «да», чтобы продолжить. До согласия текст не сохраняется.",
+    suggestions: ["Какие услуги вы делаете?", "Сколько стоит сайт?", "Как вы работаете?", "Хочу обсудить задачу"],
     thinking: "Печатает…",
     fallbackNote: "Пошаговый сценарий; при подключённом API ответы уточняет языковая модель. Цены и сроки не называются.",
     error: "Не удалось получить ответ. Попробуйте ещё раз или напишите нам через форму контактов.",
@@ -29,6 +30,7 @@ const TEXT = {
     cancel: "Cancel",
     close: "Close",
     greeting: "Before we begin, please consent: your task description and any contact details you provide will be processed to prepare your request and share it with a DS DIGITAL manager. Type “yes” to continue. Text entered before consent is not stored.",
+    suggestions: ["What services do you offer?", "How much does a website cost?", "How do you work?", "I want to discuss a task"],
     thinking: "Typing…",
     fallbackNote: "Step-by-step script; with a connected API a language model refines replies. No prices or deadlines are quoted.",
     error: "Could not get a reply. Try again or use the contact form.",
@@ -84,8 +86,8 @@ export function AiConsultant({ locale }: { locale: Locale }) {
 
   const cancel = useCallback(() => abortRef.current?.abort(), []);
 
-  const send = useCallback(async () => {
-    const message = input.trim();
+  const send = useCallback(async (raw?: string) => {
+    const message = (raw ?? input).trim();
     if (!message || pending) return;
 
     setTurns((list) => [...list, { role: "user", content: message }]);
@@ -139,6 +141,22 @@ export function AiConsultant({ locale }: { locale: Locale }) {
             ))}
             {pending ? <p className="ai-msg assistant muted">{t.thinking}</p> : null}
           </div>
+
+          {turns.length <= 1 ? (
+            <div className="ai-chips">
+              {t.suggestions.map((question) => (
+                <button
+                  key={question}
+                  type="button"
+                  className="ai-chip"
+                  onClick={() => void send(question)}
+                  disabled={pending}
+                >
+                  {question}
+                </button>
+              ))}
+            </div>
+          ) : null}
 
           <form
             className="ai-form"
