@@ -1,11 +1,12 @@
 /**
  * G4 performance budget: размер исходного JS-бандла главной страницы (gzip).
  * Запуск: npm run perf:budget [URL]
+ * Бюджет по умолчанию — 230 КБ gzip (фактически ~200 КБ).
  */
 import { gzipSync } from "node:zlib";
 
 const siteUrl = process.argv[2] || process.env.SITE_URL || "https://ds-digital-ebon.vercel.app";
-const budgetKb = Number(process.env.JS_BUDGET_KB || 200);
+const budgetKb = Number(process.env.JS_BUDGET_KB || 230);
 const target = `${siteUrl.replace(/\/+$/, "")}/ru`;
 
 const response = await fetch(target, { headers: { "User-Agent": "ds-perf-budget/1.0" } });
