@@ -14,6 +14,8 @@ export const AI_PROVIDER_SETTINGS_KEY = "ai-provider";
 export const TELEGRAM_SETTINGS_KEY = "telegram";
 /** Секретные настройки email-уведомлений (только сервер). */
 export const EMAIL_PROVIDER_SETTINGS_KEY = "email-provider";
+/** Секретные настройки S3-совместимого хранилища медиа (только сервер). */
+export const S3_PROVIDER_SETTINGS_KEY = "s3-provider";
 
 export async function getSetting<T = unknown>(key: string): Promise<T | null> {
   const row = await db.setting.findUnique({ where: { key } });
