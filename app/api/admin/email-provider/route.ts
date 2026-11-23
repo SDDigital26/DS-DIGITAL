@@ -19,6 +19,12 @@ const schema = z.object({
   from: z.string().trim().max(160).default(""),
   apiKey: z.string().trim().max(500).default(""),
   clearApiKey: z.boolean().default(false),
+  smtpHost: z.string().trim().max(200).default(""),
+  smtpPort: z.number().int().min(1).max(65535).default(587),
+  smtpSecure: z.boolean().default(false),
+  smtpUser: z.string().trim().max(200).default(""),
+  smtpPassword: z.string().trim().max(500).default(""),
+  clearSmtpPassword: z.boolean().default(false),
 });
 
 export async function GET() {
@@ -47,6 +53,13 @@ export async function PUT(request: NextRequest) {
     endpoint: parsed.data.endpoint,
     from: parsed.data.from,
     apiKey: parsed.data.clearApiKey ? "" : parsed.data.apiKey || current.apiKey,
+    smtpHost: parsed.data.smtpHost,
+    smtpPort: parsed.data.smtpPort,
+    smtpSecure: parsed.data.smtpSecure,
+    smtpUser: parsed.data.smtpUser,
+    smtpPassword: parsed.data.clearSmtpPassword
+      ? ""
+      : parsed.data.smtpPassword || current.smtpPassword,
   };
   await saveEmailConfig(saved);
   await db.auditLog.create({

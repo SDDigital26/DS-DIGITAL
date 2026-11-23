@@ -18,8 +18,9 @@ function mask(value: string): string {
 async function main() {
   const email = process.env.PROVIDED_EMAIL?.trim() ?? "";
   const telegramToken = process.env.PROVIDED_TELEGRAM_TOKEN?.trim() ?? "";
+  const telegramChat = process.env.PROVIDED_TELEGRAM_CHAT?.trim() ?? "";
   const s3Secret = process.env.PROVIDED_S3_SECRET?.trim() ?? "";
-  if (!email && !telegramToken && !s3Secret) {
+  if (!email && !telegramToken && !telegramChat && !s3Secret) {
     console.log("[settings] nothing to apply");
     return;
   }
@@ -28,24 +29,33 @@ async function main() {
     const site = (await getSetting<Partial<SiteSettings>>(SITE_SETTINGS_KEY)) ?? {};
     await setSetting(SITE_SETTINGS_KEY, { ...site, email, whatsapp: "" });
     const mail = (await getSetting<Partial<EmailProviderConfig>>(EMAIL_PROVIDER_SETTINGS_KEY)) ?? {};
-    await setSetting(EMAIL_PROVIDER_SETTINGS_KEY, { ...mail, from: email });
-    console.log(`[settings] email applied: ${mask(email)}`);
+    // Gmail SMTP уже настроен — владельцу остаётся вставить App Password в кабинете.
+    await setSetting(EMAIL_PROVIDER_SETTINGS_KEY, {
+      ...mail,
+      from: email,
+      smtpHost: "smtp.gmail.com",
+      smtpPort: 587,
+      smtpSecure: false,
+      smtpUser: email,
+    });
+    console.log(`[settings] email applied: ${mask(email)} (SMTP ready, App Password required)`);
   }
 
-  if (telegramToken) {
+  if (telegramToken || telegramChat) {
     const site = (await getSetting<Partial<SiteSettings>>(SITE_SETTINGS_KEY)) ?? {};
     if (!site.telegram || site.telegram.includes("DEMO")) {
       await setSetting(SITE_SETTINGS_KEY, { ...site, telegram: "" });
     }
     const current = (await getSetting<Partial<TelegramConfig>>(TELEGRAM_SETTINGS_KEY)) ?? {};
+    const token = telegramToken || current.botToken || "";
+    const chat = telegramChat || current.chatId || "";
     await setSetting(TELEGRAM_SETTINGS_KEY, {
-      botToken: telegramToken,
-      chatId: current.chatId ?? "",
+      botToken: token,
+      chatId: chat,
       notifyOnLead: current.notifyOnLead ?? true,
-      // Включаем только после указания chatId в кабинете.
-      enabled: false,
+      enabled: Boolean(token && chat),
     });
-    console.log(`[settings] telegram token applied: ${mask(telegramToken)} (needs chatId)`);
+    console.log(`[settings] telegram applied: chat ${chat || "missing"} (token ${mask(token)})`);
   }
 
   if (s3Secret) {

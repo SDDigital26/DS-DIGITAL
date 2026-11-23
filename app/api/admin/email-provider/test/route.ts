@@ -9,8 +9,9 @@ export async function POST() {
   if (auth instanceof NextResponse) return auth;
 
   const config = await getEmailConfig();
-  if (!config.endpoint) {
-    return NextResponse.json({ ok: false, error: "endpoint not configured" }, { status: 400 });
+  const smtpReady = Boolean(config.smtpHost && config.smtpUser && config.smtpPassword);
+  if (!smtpReady && !config.endpoint) {
+    return NextResponse.json({ ok: false, error: "email provider not configured" }, { status: 400 });
   }
   const result = await sendEmail({
     to: config.from || "test@example.com",
