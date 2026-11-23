@@ -123,16 +123,23 @@ function scoreRow(
   queryTokens: string[],
   phrase: string,
   intent: Intent,
-): number {
+): { score: number; titleHits: number } {
   const title = row.title.toLowerCase();
   const category = (row.category ?? "").toLowerCase();
   const content = row.content.toLowerCase();
   let score = 0;
+  let titleHits = 0;
 
-  if (phrase.length >= 6 && title.includes(phrase)) score += 6;
+  if (phrase.length >= 6 && title.includes(phrase)) {
+    score += 6;
+    titleHits += 1;
+  }
 
   for (const token of queryTokens) {
-    if (title.includes(token)) score += 4;
+    if (title.includes(token)) {
+      score += 4;
+      titleHits += 1;
+    }
     if (category.includes(token)) score += 2;
     const first = content.indexOf(token);
     if (first >= 0) {
@@ -148,7 +155,7 @@ function scoreRow(
   if (intent === "services" && row.source === "service") score += 4;
 
   // Свежие/важные факты чуть выше при равенстве очков.
-  return score + Math.max(0, 5 - row.sort / 100);
+  return { score: score + Math.max(0, 5 - row.sort / 100), titleHits };
 }
 
 /** Ранжированный поиск по базе знаний (без внешних вызовов). */
@@ -156,7 +163,7 @@ export async function searchKnowledge(
   locale: "ru" | "en",
   query: string,
   limit = AI_KNOWLEDGE_MAX_FACTS,
-): Promise<Array<KnowledgeRow & { score: number }>> {
+): Promise<Array<KnowledgeRow & { score: number; titleHits: number }>> {
   const rows = await db.aiKnowledgeItem
     .findMany({
       where: { locale, published: true },
@@ -181,11 +188,11 @@ export async function searchKnowledge(
       .slice()
       .sort((a, b) => a.sort - b.sort)
       .slice(0, limit)
-      .map((row) => ({ ...row, score: 0 }));
+      .map((row) => ({ ...row, score: 0, titleHits: 0 }));
   }
 
   const scored = rows
-    .map((row) => ({ ...row, score: scoreRow(row, queryTokens, phrase, intent) }))
+    .map((row) => ({ ...row, ...scoreRow(row, queryTokens, phrase, intent) }))
     .filter((row) => row.score >= 4)
     .sort((a, b) => b.score - a.score);
 
@@ -196,7 +203,7 @@ export async function searchKnowledge(
     .filter((row) => row.sort <= 10)
     .sort((a, b) => a.sort - b.sort)
     .slice(0, Math.min(3, limit))
-    .map((row) => ({ ...row, score: 0 }));
+    .map((row) => ({ ...row, score: 0, titleHits: 0 }));
 }
 
 /** Готовый ответ из базы знаний, если совпадение достаточно уверенное. */
@@ -232,7 +239,9 @@ export async function findKnowledgeAnswer(
   }
 
   const [best] = await searchKnowledge(locale, query, 1);
-  if (!best || best.score < 4) return null;
+  // Отвечаем из базы только при уверенном совпадении: очки ≥ 6 и попадание
+  // в заголовок/категорию. Иначе — LLM с фактами (он точнее рассуждает).
+  if (!best || best.score < 6 || best.titleHits < 1) return null;
 
   const content = best.content.trim();
   const answer =

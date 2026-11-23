@@ -101,6 +101,12 @@ export async function generateAssistantReply(options: {
 
 type ChatRole = "system" | "user" | "assistant";
 
+/**
+ * Резервные модели Google: бесплатный уровень часто отдаёт 429/503 по популярным
+ * моделям, поэтому при временной недоступности пробуем следующие (ТЗ §6.14).
+ */
+const GOOGLE_FALLBACK_MODELS = ["gemini-3.5-flash-lite", "gemini-flash-lite-latest"];
+
 async function requestCompletion(
   config: AiProviderConfig,
   messages: { role: ChatRole; content: string }[],
@@ -112,6 +118,36 @@ async function requestCompletion(
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (config.apiKey) headers["Authorization"] = `Bearer ${config.apiKey}`;
 
+  const models = [
+    model,
+    ...(config.provider === "google" && !GOOGLE_FALLBACK_MODELS.includes(model)
+      ? GOOGLE_FALLBACK_MODELS
+      : []),
+  ];
+
+  let lastError: unknown = null;
+  for (const currentModel of models) {
+    try {
+      return await completeWithModel(config, currentModel, headers, messages);
+    } catch (error) {
+      lastError = error;
+      const status =
+        error instanceof AiProviderError && /provider responded (\d+)/.exec(error.message)
+          ? Number(/provider responded (\d+)/.exec(error.message)?.[1] ?? 0)
+          : 0;
+      // Переключаем модель только при временных/лимитных ошибках.
+      if (![404, 429, 503].includes(status)) throw error;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new AiProviderError("provider unavailable");
+}
+
+async function completeWithModel(
+  config: AiProviderConfig,
+  model: string,
+  headers: Record<string, string>,
+  messages: { role: ChatRole; content: string }[],
+): Promise<string> {
   const response = await fetch(chatCompletionsUrl(config), {
     method: "POST",
     headers,
@@ -135,6 +171,8 @@ async function requestCompletion(
     choices?: { message?: { content?: unknown } }[];
   };
   const content = data.choices?.[0]?.message?.content;
-  if (typeof content !== "string") throw new AiProviderError("empty provider response");
+  if (typeof content !== "string" || !content.trim()) {
+    throw new AiProviderError("empty provider response");
+  }
   return content.replace(/\s+/g, " ").trim().slice(0, MAX_REPLY_CHARS);
 }

@@ -57,8 +57,8 @@ export const AI_PROVIDER_PRESETS: Record<
   google: {
     label: "Google Gemini (OpenAI-совместимый API)",
     baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai",
-    model: "gemini-3-flash-preview",
-    hint: "Бесплатный уровень Google AI Studio: создайте ключ в aistudio.google.com/apikey.",
+    model: "gemini-3.5-flash-lite",
+    hint: "Бесплатный уровень Google AI Studio: создайте ключ в aistudio.google.com/apikey. При 429/503 система сама переключается на резервные модели.",
   },
   "openai-compatible": {
     label: "Свой / OpenAI-совместимый API",

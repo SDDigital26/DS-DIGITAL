@@ -11,6 +11,8 @@ const QUESTIONS: Array<{ locale: "ru" | "en"; q: string }> = [
   { locale: "ru", q: "Как с вами связаться?" },
   { locale: "ru", q: "Как проходит работа?" },
   { locale: "ru", q: "Что такое AI-решение?" },
+  { locale: "ru", q: "Можно ли начать с одного модуля и расширять позже?" },
+  { locale: "ru", q: "Делаете ли вы интеграцию с 1С?" },
   { locale: "en", q: "How much does a website cost?" },
   { locale: "en", q: "What services do you offer?" },
   { locale: "en", q: "How can I contact you?" },
