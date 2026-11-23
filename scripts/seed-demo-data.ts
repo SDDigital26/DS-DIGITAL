@@ -115,6 +115,29 @@ const PROJECTS: ProjectSeed[] = [
   },
 ];
 
+const FAQ = [
+  {
+    locale: "ru",
+    question: "Как заказать разработку? [ДЕМО]",
+    answer: "Оставьте заявку через форму — тестовая запись для проверки FAQ и кнопки «Обсудить задачу». Заменить реальным ответом.",
+  },
+  {
+    locale: "ru",
+    question: "Сколько стоит сайт? [ДЕМО]",
+    answer: "Ориентир можно посчитать в калькуляторе. Точную стоимость фиксируем после обсуждения состава работ.",
+  },
+  {
+    locale: "en",
+    question: "How to place an order? [DEMO]",
+    answer: "Submit the form — this is a test entry to verify the FAQ accordion. Replace with a real answer.",
+  },
+  {
+    locale: "en",
+    question: "How much does a website cost? [DEMO]",
+    answer: "Use the calculator for an estimate. The exact price is fixed after discussing the scope.",
+  },
+];
+
 const TESTIMONIALS = [
   {
     authorName: "Тестовый клиент [ДЕМО]",
@@ -197,6 +220,17 @@ async function main() {
       await db.testimonial.create({ data });
       console.log(`[demo] создан отзыв: ${item.authorName}`);
     }
+  }
+
+  for (const [index, item] of FAQ.entries()) {
+    const existing = await db.faqItem.findFirst({
+      where: { question: item.question, locale: item.locale },
+      select: { id: true },
+    });
+    const data = { ...item, published: true, sort: 30 + index };
+    if (existing) await db.faqItem.update({ where: { id: existing.id }, data });
+    else await db.faqItem.create({ data });
+    console.log(`[demo] FAQ: ${item.question}`);
   }
 
   // Тестовые контакты — заменяются владельцем в /admin/settings.
