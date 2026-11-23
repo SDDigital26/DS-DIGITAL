@@ -18,7 +18,7 @@ const load = cache(async (slug: string) => {
   return article;
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3001";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3013";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
   const { locale, slug } = await params;

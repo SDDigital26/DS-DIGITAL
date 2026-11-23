@@ -98,6 +98,13 @@ export function S3ProviderForm({ onSaved }: { onSaved?: () => void }) {
         S3-совместимый endpoint (AWS S3, Cloudflare R2, MinIO). Ключи хранятся только на сервере и не
         показываются после сохранения.
       </p>
+      <p className="mt-2 rounded-lg border border-white/10 bg-bg/40 px-3 py-2 text-xs text-secondary">
+        Supabase (текущая БД): Project Settings → Storage → «S3 access keys» → создать пару ключей.
+        Endpoint: <code>https://&lt;project-ref&gt;.supabase.co/storage/v1/s3</code>, Region — регион
+        проекта (например <code>ap-southeast-1</code>). Затем Storage → New bucket → включить
+        «Public bucket», и в поле CDN указать{" "}
+        <code>https://&lt;project-ref&gt;.supabase.co/storage/v1/object/public/&lt;bucket&gt;</code>.
+      </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1 sm:col-span-2">
           <label className={label} htmlFor="s3-endpoint">Endpoint</label>

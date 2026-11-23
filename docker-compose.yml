@@ -1,17 +1,17 @@
 # DS DIGITAL — Development / Staging окружение на Docker
 # Запуск: docker compose up -d --build
-# Приложение: http://localhost:3000
+# Приложение: http://localhost:3013
 services:
   web:
     build:
       context: .
       args:
-        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3001}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3013}
     ports:
-      - "3001:3000"
+      - "3013:3000"
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3001}
+      NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3013}
       # Отдельная переменная для контейнера: внутри compose хост БД — `db:5432`,
       # а не `localhost:5433` (тот нужен только для миграций с хоста).
       # Для Supabase задайте DATABASE_URL_DOCKER в .env (см. .env.example).

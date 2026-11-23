@@ -6,13 +6,13 @@
  * (иначе ониattempt API-запросы и падают) и переписываем абсолютные пути
  * под префикс репозитория /DS-DIGITAL/.
  *
- * Запуск: PREVIEW_BASE=http://localhost:3001 npm run pages:build
+ * Запуск: PREVIEW_BASE=http://localhost:3013 npm run pages:build
  * Результат: docs/ — отдаётся GitHub Pages из ветки main, папки /docs.
  */
 import { mkdir, writeFile, cp } from "node:fs/promises";
 import { join, dirname } from "node:path";
 
-const BASE = process.env.PREVIEW_BASE ?? "http://localhost:3001";
+const BASE = process.env.PREVIEW_BASE ?? "http://localhost:3013";
 const PREFIX = process.env.PAGES_PREFIX ?? "/DS-DIGITAL";
 const OUT = "docs";
 

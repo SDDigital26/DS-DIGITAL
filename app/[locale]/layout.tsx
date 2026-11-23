@@ -58,7 +58,9 @@ export async function generateMetadata({
       siteName: "DS DIGITAL",
       type: "website",
       locale: locale === "ru" ? "ru_RU" : "en_US",
+      // Дефолтная картинка задаётся файлом app/[locale]/opengraph-image.tsx.
     },
+    twitter: { card: "summary_large_image", site: "ds_digital" },
   };
 }
 

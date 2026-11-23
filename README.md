@@ -168,7 +168,7 @@ cd D:\DS_DIGITAL
 docker compose up -d --build
 ```
 
-- Сайт: **http://localhost:3001** (порт 3000 занят другим dev-сервером — не трогать)
+- Сайт: **http://localhost:3013** (порт 3001 освобождён под другие локальные сервисы, 3000 занят другим dev-сервером — не трогать)
 - PostgreSQL: `localhost:5433` (логин `ds` / пароль `ds_pass` / БД `ds_digital`)
 
 Первичная инициализация БД (один раз; миграции применяются с хоста, где лежит `.env`):
@@ -182,10 +182,10 @@ npm run seed:content      # завести 7 услуг из брифа (иде�
 Проверка:
 
 ```bash
-curl -I http://localhost:3001/          # 307 → /en (или /ru по cookie/Accept-Language)
-curl -I http://localhost:3001/ru        # 200
-curl -I http://localhost:3001/ru/bad-page  # 404 (кастомная)
-curl -s http://localhost:3001/api/health    # {"status":"ok","db":"ok"}
+curl -I http://localhost:3013/          # 307 → /en (или /ru по cookie/Accept-Language)
+curl -I http://localhost:3013/ru        # 200
+curl -I http://localhost:3013/ru/bad-page  # 404 (кастомная)
+curl -s http://localhost:3013/api/health    # {"status":"ok","db":"ok"}
 docker compose ps                       # оба контейнера healthy
 ```
 
@@ -255,7 +255,7 @@ scripts/seed-content.ts # первичное наполнение услуг (7 
 tests/               # vitest
 proxy.ts             # редиректы языка, 307 на /admin без cookie, определение locale
 Dockerfile           # multi-stage, standalone
-docker-compose.yml   # web:3001 + postgres:5433 (healthcheck на обоих)
+docker-compose.yml   # web:3013 + postgres:5433 (healthcheck на обоих)
 .env.example         # шаблон переменных (секреты не коммитятся)
 ```
 
