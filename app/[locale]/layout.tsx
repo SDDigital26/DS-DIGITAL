@@ -12,6 +12,7 @@ import { AiConsultant } from "@/components/site/AiConsultant";
 import { CookieBanner } from "@/components/site/CookieBanner";
 import { getSiteSettings } from "@/lib/site-settings";
 import { AnalyticsGate } from "@/components/site/AnalyticsGate";
+import { AdCounters } from "@/components/site/AdCounters";
 import "../globals.css";
 import "../proto.css";
 
@@ -81,8 +82,14 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} className="h-full antialiased" data-effects={settings.effectsMode}>
       <body className="min-h-full">
-        {/* Метрики — только после согласия на аналитику (cookie-политика). */}
+        {/* Метрики — только после согласия на аналитику (cookie-политика).
+            Рекламные счётчики (Яндекс.Метрика / Meta / VK) — если заданы env-ID. */}
         <AnalyticsGate />
+        <AdCounters
+          ymId={process.env.NEXT_PUBLIC_YM_ID}
+          metaId={process.env.NEXT_PUBLIC_META_PIXEL_ID}
+          vkId={process.env.NEXT_PUBLIC_VK_PIXEL_ID}
+        />
         {/* Фоновые слои — вне .ds, чтобы overflow-x: clip не влиял на fixed-слой:
             матричный дождь (full, обе темы) под контентом, молния (тёмная) над ним. */}
         <MatrixRain mode={settings.effectsMode} />

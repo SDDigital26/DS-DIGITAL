@@ -23,18 +23,41 @@ export async function GET() {
   // Группируем пары ru/en по (kind, key) — в админке одна строка на правило.
   const grouped = new Map<
     string,
-    { kind: string; key: string; price: number; weight: number; sort: number; active: boolean; ru: string; en: string }
+    {
+      kind: string;
+      key: string;
+      price: number;
+      weight: number;
+      weeksMin: number | null;
+      weeksMax: number | null;
+      sort: number;
+      active: boolean;
+      ru: string;
+      en: string;
+    }
   >();
 
   for (const row of rows) {
     const id = `${row.kind}:${row.key}`;
     const entry =
-      grouped.get(id) ??
-      { kind: row.kind, key: row.key, price: row.price, weight: row.weight, sort: row.sort, active: row.active, ru: "", en: "" };
+      grouped.get(id) ?? {
+        kind: row.kind,
+        key: row.key,
+        price: row.price,
+        weight: row.weight,
+        weeksMin: row.weeksMin,
+        weeksMax: row.weeksMax,
+        sort: row.sort,
+        active: row.active,
+        ru: "",
+        en: "",
+      };
     if (row.locale === "ru") entry.ru = row.label;
     if (row.locale === "en") entry.en = row.label;
     entry.price = row.price;
     entry.weight = row.weight;
+    entry.weeksMin = row.weeksMin;
+    entry.weeksMax = row.weeksMax;
     entry.sort = row.sort;
     entry.active = row.active;
     grouped.set(id, entry);
@@ -101,6 +124,8 @@ export async function POST(request: NextRequest) {
   const common = {
     price: data.price,
     weight: data.weight ?? 0,
+    weeksMin: data.weeksMin ?? null,
+    weeksMax: data.weeksMax ?? null,
     sort: data.sort ?? 0,
     active: data.active ?? true,
   };
@@ -124,7 +149,7 @@ export async function POST(request: NextRequest) {
       action: "calculator.rule.upsert",
       entity: "CalculatorRule",
       entityId: `${data.kind}:${data.key}`,
-      diff: { price: data.price, weight: common.weight, active: common.active },
+      diff: { price: data.price, weight: common.weight, weeksMin: common.weeksMin, weeksMax: common.weeksMax, active: common.active },
     },
   });
 

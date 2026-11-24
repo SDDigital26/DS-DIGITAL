@@ -207,8 +207,11 @@ model CalculatorRule {
   key       String
   locale    String   @default("ru")
   label     String
-  price     Int      @default(0) // вклад в цену
+  price     Int      @default(0) // «от», USD
   weight    Int      @default(0)
+  /** Срок в неделях (для услуг): нижняя/верхняя граница. */
+  weeksMin  Int?
+  weeksMax  Int?
   active    Boolean  @default(true)
   sort      Int      @default(0)
   createdAt DateTime @default(now())

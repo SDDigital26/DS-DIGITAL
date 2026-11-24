@@ -12,7 +12,8 @@ import { useEffect, useRef } from "react";
  * - пауза при скрытой вкладке и prefers-reduced-motion, DPR ≤ 1.
  */
 
-const GLYPHS = "アカサタナハマヤラワエキソ0123456789{}[]<>=/;#$&+*%_";
+/** Просто код: символы, из которых пишутся программы — без иероглифов. */
+const GLYPHS = "{}[]()<>=/\\;:,.+-*%$#@&|!?~^01abcdefiklmnoprstuvxyz";
 
 type Column = {
   /** Текущая строка (в клетках), может быть отрицательной — колонка ещё «не вытекла». */
@@ -38,8 +39,8 @@ export function MatrixRain({ mode }: { mode?: "full" | "lite" | "static" }) {
     const ctx: CanvasRenderingContext2D = context;
 
     const CELL = 18;
-    const TICK_MS = 90;
-    const FADE_DARK = 0.055;
+    const TICK_MS = 100;
+    const FADE_DARK = 0.05;
     const FADE_LIGHT = 0.045;
 
     let width = 0;
@@ -54,7 +55,8 @@ export function MatrixRain({ mode }: { mode?: "full" | "lite" | "static" }) {
     function palette() {
       return isLight()
         ? { head: "rgba(23, 107, 255, 0.30)", body: "rgba(23, 107, 255, 0.13)", fade: FADE_LIGHT, skip: 0.45 }
-        : { head: "rgba(53, 216, 255, 0.42)", body: "rgba(53, 216, 255, 0.16)", fade: FADE_DARK, skip: 0.32 };
+        : // Тёмная: заметно спокойнее (жалоба «рябит») — ниже контраст, больше спящих колонок.
+          { head: "rgba(53, 216, 255, 0.26)", body: "rgba(53, 216, 255, 0.10)", fade: FADE_DARK, skip: 0.5 };
     }
 
     function resize() {

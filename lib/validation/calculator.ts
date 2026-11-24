@@ -10,15 +10,15 @@ const key = z.string().trim().max(60);
 
 export const calculatorRequestSchema = z.object({
   selection: z.object({
-    service: key,
-    features: z.array(key).max(20).default([]),
-    complexity: key,
+    /** Услуги — чекбоксы: цена = сумма «от», срок = максимум. */
+    services: z.array(key).max(12).default([]),
+    /** Опции (например, поддержка $100/мес). */
     options: z.array(key).max(20).default([]),
   }),
   locale: z.enum(["ru", "en"]).default("ru"),
 });
 
-/** Админ-форма правила (RU/EN-подписи + числовые поля). */
+/** Админ-форма правила (RU/EN-подписи + числовые поля + срок). */
 export const calculatorRuleSchema = z.object({
   kind: z.enum(["service", "feature", "complexity", "option"], { message: "неизвестный вид правила" }),
   key: z
@@ -29,6 +29,9 @@ export const calculatorRuleSchema = z.object({
     .max(60),
   price: z.number().int().min(0).max(1_000_000),
   weight: z.number().min(0).max(10).optional(),
+  /** Срок в неделях (для услуг). */
+  weeksMin: z.number().int().min(0).max(520).nullable().optional(),
+  weeksMax: z.number().int().min(0).max(520).nullable().optional(),
   sort: z.number().int().min(0).max(100000).optional(),
   active: z.boolean().optional(),
   ru: z.string().trim().min(1, "подпись RU обязательна").max(120),

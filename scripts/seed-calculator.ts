@@ -1,65 +1,66 @@
 import "dotenv/config";
 import { db } from "../lib/db";
-import { DEFAULT_RULE_LABELS, DEFAULT_DISCLAIMER } from "../lib/calculator-defaults";
+import { DEFAULT_RULE_KEYS, DEFAULT_RULE_LABELS, DEFAULT_DISCLAIMER } from "../lib/calculator-defaults";
 
 /**
- * Первичное наполнение правил калькулятора (ТЗ §12).
+ * Цены владельца в калькуляторе (24.11.2026, ТЗ §12).
  *
- * Цены — ЧЕРНОВЫЕ, из прототипа первого экрана; в ТЗ стартовые цены
- * помечены [С] (требуют согласования). Запуск: npm run seed:calculator
+ * Идемпотентно:
+ * - upsert каждого правила по (kind, key, locale);
+ * - черновые правила старого набора (услуги со старыми ключами, «Функции»
+ *   и «Сложность» с несогласованными ценами) удаляются — их цены владелец
+ *   не подтверждал;
+ * - дисклеймер «Расчёт предварительный…» сохраняется, если уже задан.
  *
- * Идемпотентно: каждое правило — upsert по (kind, key, locale),
- * уже изменённое вручную не перезаписывается ценой из списка.
+ * Запуск: npm run seed:calculator
  */
 async function main() {
   for (const rule of DEFAULT_RULE_LABELS) {
+    const common = {
+      label: rule.ru,
+      price: rule.price,
+      weight: rule.weight,
+      weeksMin: rule.weeksMin,
+      weeksMax: rule.weeksMax,
+      sort: rule.sort,
+      active: true,
+    };
     await db.calculatorRule.upsert({
       where: { kind_key_locale: { kind: rule.kind, key: rule.key, locale: "ru" } },
-      create: {
-        kind: rule.kind,
-        key: rule.key,
-        locale: "ru",
-        label: rule.ru,
-        price: rule.price,
-        weight: rule.weight,
-        sort: rule.sort,
-        active: true,
-      },
-      update: {
-        label: rule.ru,
-        weight: rule.weight,
-        sort: rule.sort,
-      },
+      create: { kind: rule.kind, key: rule.key, locale: "ru", ...common },
+      update: common,
     });
+    const commonEn = { ...common, label: rule.en };
     await db.calculatorRule.upsert({
       where: { kind_key_locale: { kind: rule.kind, key: rule.key, locale: "en" } },
-      create: {
-        kind: rule.kind,
-        key: rule.key,
-        locale: "en",
-        label: rule.en,
-        price: rule.price,
-        weight: rule.weight,
-        sort: rule.sort,
-        active: true,
-      },
-      update: {
-        label: rule.en,
-        weight: rule.weight,
-        sort: rule.sort,
-      },
+      create: { kind: rule.kind, key: rule.key, locale: "en", ...commonEn },
+      update: commonEn,
     });
   }
 
-  const existing = await db.setting.findUnique({ where: { key: "calculator" } });
-  if (!existing) {
+  // Черновые правила, которых больше нет в наборе владельца, — удалить.
+  const staleKinds: string[] = ["feature", "complexity"];
+  const removedFeature = await db.calculatorRule.deleteMany({ where: { kind: { in: staleKinds } } });
+
+  const keepKeys = DEFAULT_RULE_KEYS.service;
+  const removedServices = await db.calculatorRule.deleteMany({
+    where: { kind: "service", key: { notIn: keepKeys } },
+  });
+  const removedOptions = await db.calculatorRule.deleteMany({
+    where: { kind: "option", key: { notIn: DEFAULT_RULE_KEYS.option } },
+  });
+
+  const existingConfig = await db.setting.findUnique({ where: { key: "calculator" } });
+  if (!existingConfig) {
     await db.setting.create({
       data: { key: "calculator", value: DEFAULT_DISCLAIMER },
     });
   }
 
   const count = await db.calculatorRule.count();
-  console.log(`[seed] Калькулятор: правил в БД ${count} (RU+EN), дисклеймер задан.`);
+  console.log(
+    `[seed] Калькулятор: правил в БД ${count} (RU+EN), дисклеймер сохранён. Удалено черновых: услуги ${removedServices.count}, опции ${removedOptions.count}, функции/сложность ${removedFeature.count}.`,
+  );
 }
 
 main()

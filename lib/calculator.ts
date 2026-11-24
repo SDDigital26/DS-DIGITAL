@@ -3,10 +3,12 @@ import type { Locale } from "@/lib/i18n/config";
 /**
  * Калькулятор стоимости (ТЗ §12) — ЧИСТЫЙ модуль без зависимостей от Next/Prisma.
  *
- * Одна и та же функция считает и на клиенте (предпросмотр), и на сервере
- * (`POST /api/calculator` — источник истины, клиенту не доверяем, ТЗ §21.1).
- * Правила хранятся в БД (`CalculatorRule`), поэтому цены меняются из админки
- * без деплоя. Здесь — только математика и типы.
+ * Модель цен владельца (24.11.2026):
+ * - каждая услуга — «от $X» (floor), без коридоров и множителей;
+ * - выбрано несколько услуг → цена = сумма, срок = максимальный из выбранных;
+ * - «Другое» → «Обсудим индивидуально» (только на клиенте, в расчёт не входит);
+ * - свои цены и сроки не придумываются — всё хранится в БД (`CalculatorRule`),
+ *   правится в кабинете (`/admin/calculator`).
  */
 
 export type RuleKind = "service" | "feature" | "complexity" | "option";
@@ -15,47 +17,43 @@ export type CalcRule = {
   kind: RuleKind;
   key: string;
   label: string;
-  /** Добавка к базовой цене, USD. */
+  /** «От», USD. */
   price: number;
-  /** Множитель для сложности (1 = без изменений); для остальных видов не используется. */
+  /** Множитель (legacy для вида «Сложность»); в новой модели не используется. */
   weight: number;
+  /** Срок в неделях (для услуг). */
+  weeksMin: number | null;
+  weeksMax: number | null;
   sort: number;
 };
 
 export type CalcSelection = {
-  service: string;
-  features: string[];
-  complexity: string;
+  services: string[];
   options: string[];
 };
 
 export type CalcResult = {
-  /** Диапазон цены, USD (нижняя и верхняя граница коридора). */
-  min: number;
-  max: number;
-  /** Диапазон сроков, недели. */
-  weeksMin: number;
-  weeksMax: number;
-  /** Подписи выбранного — для карточки итога. */
+  /** Сумма «от», USD. */
+  price: number;
+  weeksMin: number | null;
+  weeksMax: number | null;
+  /** Подписи выбранного — для карточки итога и лида. */
   selectedLabels: string[];
-  /** Оценка в неделях до округления (для расчёта лида). */
-  weeks: number;
 };
-
-/** Коридор цены и перевод «человеко-часов» в сроки. */
-const CORRIDOR = 0.85; // нижняя граница = −15%
-const CORRIDOR_UP = 1.2; // верхняя граница = +20%
-const HOURS_PER_WEEK = 30;
-/** Базовая ставка, USD/час. */
-const RATE_PER_HOUR = 30;
 
 function isRuleKind(value: string): value is RuleKind {
   return value === "service" || value === "feature" || value === "complexity" || value === "option";
 }
 
+function clampWeeks(value: unknown): number | null {
+  const n = typeof value === "number" ? value : Number(value);
+  if (!Number.isFinite(n)) return null;
+  return Math.max(0, Math.min(520, Math.round(n)));
+}
+
 /** Нормализует произвольные строки из БД в правила (устойчиво к мусору). */
 export function normalizeRules(
-  rows: Array<Omit<CalcRule, "kind"> & { kind: string }>,
+  rows: Array<Omit<CalcRule, "kind"> & { kind: string; weeksMin?: number | null; weeksMax?: number | null }>,
 ): CalcRule[] {
   return rows
     .filter((row) => isRuleKind(row.kind) && typeof row.key === "string" && row.key.length > 0)
@@ -64,58 +62,62 @@ export function normalizeRules(
       key: row.key,
       label: row.label || row.key,
       price: Number.isFinite(row.price) ? Math.max(0, Math.round(row.price)) : 0,
-      weight: Number.isFinite(row.weight) ? Math.max(1, Math.min(10, row.weight)) : 0,
+      weight: Number.isFinite(row.weight) ? Math.max(0, Math.min(10, row.weight)) : 0,
+      weeksMin: clampWeeks(row.weeksMin),
+      weeksMax: clampWeeks(row.weeksMax),
       sort: Number.isFinite(row.sort) ? row.sort : 0,
     }))
     .sort((a, b) => a.sort - b.sort || a.label.localeCompare(b.label));
 }
 
 /**
- * Расчёт.
- *
- * База = цена выбранной услуги. Функции и опции прибавляются. Сложность
- * умножает итог на `weight` (1.0 / 1.35 / 1.9 — задаётся в админке).
- * Сроки: (база + добавки) / ставка / часы-в-неделю, с тем же коридором.
- *
- * Неизвестные ключи игнорируются — подделанный запрос не завышает цену
- * и не вызывает ошибку (валидатor не пропустит `<script>`-ключи, а здесь
- * просто нет совпадения).
+ * Расчёт по выбору владельца:
+ * - цена = сумма «от»-цен выбранных услуг и опций;
+ * - срок = максимальный из сроков выбранных услуг;
+ * - неизвестные ключи игнорируются — подделанный запрос не меняет цену.
  */
 export function calculate(selection: CalcSelection, rules: CalcRule[]): CalcResult | null {
-  const byKind = (kind: RuleKind) => rules.filter((r) => r.kind === kind);
+  const services = rules.filter((r) => r.kind === "service" && selection.services.includes(r.key));
+  if (!services.length) return null;
 
-  const service = byKind("service").find((r) => r.key === selection.service);
-  if (!service) return null;
+  const options = rules.filter((r) => r.kind === "option" && selection.options.includes(r.key));
+  const price = [...services, ...options].reduce((sum, rule) => sum + rule.price, 0);
 
-  const features = byKind("feature").filter((r) => selection.features.includes(r.key));
-  const options = byKind("option").filter((r) => selection.options.includes(r.key));
-  const complexity =
-    byKind("complexity").find((r) => r.key === selection.complexity) ?? byKind("complexity")[0] ?? null;
-
-  const additions = [...features, ...options].reduce((sum, rule) => sum + rule.price, 0);
-  const base = service.price + additions;
-  const factor = complexity && complexity.weight > 0 ? complexity.weight : 1;
-
-  const price = base * factor;
-  const hours = price / RATE_PER_HOUR;
-  const weeks = hours / HOURS_PER_WEEK;
-
-  const selectedLabels = [service.label, ...features.map((r) => r.label), ...options.map((r) => r.label)];
-  if (complexity && complexity.label) selectedLabels.push(complexity.label);
+  const weeksMinValues = services.map((r) => r.weeksMin).filter((w): w is number => w !== null);
+  const weeksMaxValues = services.map((r) => r.weeksMax).filter((w): w is number => w !== null);
 
   return {
-    min: round50(price * CORRIDOR),
-    max: round50(price * CORRIDOR_UP),
-    weeksMin: Math.max(1, Math.floor(weeks)),
-    weeksMax: Math.max(2, Math.ceil(weeks * 1.3)),
-    selectedLabels,
-    weeks,
+    price,
+    weeksMin: weeksMinValues.length ? Math.max(...weeksMinValues) : null,
+    weeksMax: weeksMaxValues.length ? Math.max(...weeksMaxValues) : null,
+    selectedLabels: [...services.map((r) => r.label), ...options.map((r) => r.label)],
   };
 }
 
-/** Округление до 50 USD — ценник не выглядит «сырым». */
-function round50(value: number): number {
-  return Math.round(value / 50) * 50;
+/** «от $800» (RU) / «from $800» (EN), разделитель тысяч — пробел. */
+export function formatFromPrice(locale: Locale, price: number): string {
+  const formatted = Math.round(price).toLocaleString("ru-RU").replace(/\u00A0/g, " ");
+  return locale === "ru" ? `от $${formatted}` : `from $${formatted}`;
+}
+
+/** Срок «1–2 нед.» (RU) / «1–2 weeks» (EN); месяцы — как дал их владелец (в неделях). */
+export function formatWeeks(locale: Locale, weeksMin: number | null, weeksMax: number | null): string {
+  if (weeksMin === null && weeksMax === null) return "";
+  const unit = locale === "ru" ? "нед." : "weeks";
+  if (weeksMin !== null && weeksMax !== null) {
+    return weeksMin === weeksMax ? `${weeksMin} ${unit}` : `${weeksMin}–${weeksMax} ${unit}`;
+  }
+  const single = weeksMin ?? weeksMax;
+  return `${single} ${unit}`;
+}
+
+/** Валидация выбора — zod-схема живёт в lib/validation/calculator.ts. */
+export function isValidSelection(value: unknown): value is CalcSelection {
+  if (typeof value !== "object" || value === null) return false;
+  const v = value as Record<string, unknown>;
+  const keys = (x: unknown): x is string[] =>
+    Array.isArray(x) && x.length <= 12 && x.every((item) => typeof item === "string" && item.length <= 60);
+  return keys(v.services) && keys(v.options ?? []);
 }
 
 /**
@@ -132,25 +134,13 @@ export function describeCalculation(
       ? "Расчёт из калькулятора на сайте"
       : "Estimate from the website calculator";
   const chosen = result.selectedLabels.join(", ");
-  const range = `$${result.min} – $${result.max}`;
-  const weeks =
-    locale === "ru" ? `${result.weeksMin}–${result.weeksMax} нед.` : `${result.weeksMin}–${result.weeksMax} weeks`;
+  const price = formatFromPrice(locale, result.price);
+  const weeks = formatWeeks(locale, result.weeksMin, result.weeksMax);
+  const timeline = weeks
+    ? `${locale === "ru" ? "срок" : "timeline"}: ${weeks}`
+    : locale === "ru"
+      ? "срок обсудим индивидуально"
+      : "timeline discussed individually";
 
-  return `${head}\n${chosen}\n${range} · ${weeks}`;
-}
-
-/** Валидация выбора — zod-схема живёт в lib/validation/calculator.ts; набор ключей сверяется с БД. */
-export function isValidSelection(value: unknown): value is CalcSelection {
-  if (typeof value !== "object" || value === null) return false;
-  const v = value as Record<string, unknown>;
-  const strings = (x: unknown): x is string[] =>
-    Array.isArray(x) && x.length <= 20 && x.every((item) => typeof item === "string" && item.length <= 60);
-  return (
-    typeof v.service === "string" &&
-    v.service.length <= 60 &&
-    strings(v.features) &&
-    strings(v.options) &&
-    typeof v.complexity === "string" &&
-    v.complexity.length <= 60
-  );
+  return `${head}\n${chosen}\n${price} · ${timeline}`;
 }

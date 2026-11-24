@@ -17,16 +17,18 @@ export default async function AdminCalculatorPage() {
   const readString = (value: unknown): string =>
     typeof value === "string" ? value : "";
 
-  const grouped = new Map<string, { kind: string; key: string; price: number; weight: number; sort: number; active: boolean; ru: string; en: string }>();
+  const grouped = new Map<string, { kind: string; key: string; price: number; weight: number; weeksMin: number | null; weeksMax: number | null; sort: number; active: boolean; ru: string; en: string }>();
   for (const row of rows) {
     const id = `${row.kind}:${row.key}`;
     const entry =
       grouped.get(id) ??
-      { kind: row.kind, key: row.key, price: row.price, weight: row.weight, sort: row.sort, active: row.active, ru: "", en: "" };
+      { kind: row.kind, key: row.key, price: row.price, weight: row.weight, weeksMin: row.weeksMin, weeksMax: row.weeksMax, sort: row.sort, active: row.active, ru: "", en: "" };
     if (row.locale === "ru") entry.ru = row.label;
     if (row.locale === "en") entry.en = row.label;
     entry.price = row.price;
     entry.weight = row.weight;
+    entry.weeksMin = row.weeksMin;
+    entry.weeksMax = row.weeksMax;
     entry.sort = row.sort;
     entry.active = row.active;
     grouped.set(id, entry);
@@ -40,7 +42,8 @@ export default async function AdminCalculatorPage() {
         <h1 className="text-2xl font-semibold">Калькулятор стоимости</h1>
         <p className="mt-1 text-sm text-secondary">
           Правила хранятся в БД: изменение цены применяется к публичному расчёту без деплоя.
-          Вес у «Сложности» — множитель итоговой цены.
+          Цена — «от» (USD); срок — в неделях; несколько выбранных услуг суммируются, срок берётся
+          максимальный.
         </p>
       </header>
 

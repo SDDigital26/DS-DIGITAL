@@ -8,6 +8,8 @@ export type RuleRow = {
   key: string;
   price: number;
   weight: number;
+  weeksMin: number | null;
+  weeksMax: number | null;
   sort: number;
   active: boolean;
   ru: string;
@@ -28,6 +30,8 @@ const EMPTY: RuleRow = {
   key: "",
   price: 0,
   weight: 0,
+  weeksMin: null,
+  weeksMax: null,
   sort: 0,
   active: true,
   ru: "",
@@ -156,7 +160,9 @@ export function CalculatorRulesEditor({
           <p className="mt-1 text-xs text-secondary">
             {kind === "complexity"
               ? "Вес — множитель итоговой цены (1 = без изменений)."
-              : "Цена прибавляется к базовой стоимости услуги."}
+              : kind === "service"
+                ? "Цена — «от» (USD). Несколько выбранных услуг суммируются, срок берётся максимальный."
+                : "Цена прибавляется к сумме выбранных услуг."}
           </p>
 
           <div className="mt-3 overflow-x-auto">
@@ -166,8 +172,11 @@ export function CalculatorRulesEditor({
                   <th className="px-2 py-2">Ключ</th>
                   <th className="px-2 py-2">RU</th>
                   <th className="px-2 py-2">EN</th>
-                  <th className="px-2 py-2">Цена $</th>
-                  <th className="px-2 py-2">Вес</th>
+                  <th className="px-2 py-2">Цена $ (от)</th>
+                  {kind === "service" ? (
+                    <th className="px-2 py-2">Срок, нед. (от–до)</th>
+                  ) : null}
+                  {kind === "complexity" ? <th className="px-2 py-2">Вес</th> : null}
                   <th className="px-2 py-2">Порядок</th>
                   <th className="px-2 py-2">Вкл</th>
                   <th className="px-2 py-2"></th>
@@ -207,18 +216,51 @@ export function CalculatorRulesEditor({
                           aria-label={`Цена ${row.key}`}
                         />
                       </td>
-                      <td className="px-2 py-2">
-                        <input
-                          type="number"
-                          min={0}
-                          max={10}
-                          step={0.05}
-                          className={`${input} w-20`}
-                          value={row.weight}
-                          onChange={(e) => patchRow(index, { weight: Number(e.target.value) })}
-                          aria-label={`Вес ${row.key}`}
-                        />
-                      </td>
+                      {kind === "service" ? (
+                        <td className="px-2 py-2">
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              min={0}
+                              max={520}
+                              className={`${input} w-16`}
+                              value={row.weeksMin ?? ""}
+                              placeholder="—"
+                              onChange={(e) =>
+                                patchRow(index, { weeksMin: e.target.value === "" ? null : Number(e.target.value) })
+                              }
+                              aria-label={`Срок от, недель ${row.key}`}
+                            />
+                            <span className="text-xs text-secondary">–</span>
+                            <input
+                              type="number"
+                              min={0}
+                              max={520}
+                              className={`${input} w-16`}
+                              value={row.weeksMax ?? ""}
+                              placeholder="—"
+                              onChange={(e) =>
+                                patchRow(index, { weeksMax: e.target.value === "" ? null : Number(e.target.value) })
+                              }
+                              aria-label={`Срок до, недель ${row.key}`}
+                            />
+                          </div>
+                        </td>
+                      ) : null}
+                      {kind === "complexity" ? (
+                        <td className="px-2 py-2">
+                          <input
+                            type="number"
+                            min={0}
+                            max={10}
+                            step={0.05}
+                            className={`${input} w-20`}
+                            value={row.weight}
+                            onChange={(e) => patchRow(index, { weight: Number(e.target.value) })}
+                            aria-label={`Вес ${row.key}`}
+                          />
+                        </td>
+                      ) : null}
                       <td className="px-2 py-2">
                         <input
                           type="number"
@@ -301,7 +343,7 @@ export function CalculatorRulesEditor({
             <input id="draft-en" className={input} value={draft.en} onChange={(e) => setDraft({ ...draft, en: e.target.value })} />
           </div>
           <div className="flex flex-col gap-1">
-            <label className={label} htmlFor="draft-price">Цена $</label>
+            <label className={label} htmlFor="draft-price">Цена $ (от)</label>
             <input
               id="draft-price"
               type="number"
@@ -311,19 +353,49 @@ export function CalculatorRulesEditor({
               onChange={(e) => setDraft({ ...draft, price: Number(e.target.value) })}
             />
           </div>
-          <div className="flex flex-col gap-1">
-            <label className={label} htmlFor="draft-weight">Вес (сложность)</label>
-            <input
-              id="draft-weight"
-              type="number"
-              min={0}
-              max={10}
-              step={0.05}
-              className={input}
-              value={draft.weight}
-              onChange={(e) => setDraft({ ...draft, weight: Number(e.target.value) })}
-            />
-          </div>
+          {draft.kind === "service" ? (
+            <div className="flex flex-col gap-1">
+              <label className={label} htmlFor="draft-weeks">Срок, нед. (от–до)</label>
+              <div className="flex items-center gap-1">
+                <input
+                  id="draft-weeks"
+                  type="number"
+                  min={0}
+                  max={520}
+                  className={input}
+                  value={draft.weeksMin ?? ""}
+                  placeholder="—"
+                  onChange={(e) => setDraft({ ...draft, weeksMin: e.target.value === "" ? null : Number(e.target.value) })}
+                />
+                <span className="text-xs text-secondary">–</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={520}
+                  className={input}
+                  value={draft.weeksMax ?? ""}
+                  placeholder="—"
+                  onChange={(e) => setDraft({ ...draft, weeksMax: e.target.value === "" ? null : Number(e.target.value) })}
+                  aria-label="Срок до, недель"
+                />
+              </div>
+            </div>
+          ) : null}
+          {draft.kind === "complexity" ? (
+            <div className="flex flex-col gap-1">
+              <label className={label} htmlFor="draft-weight">Вес (сложность)</label>
+              <input
+                id="draft-weight"
+                type="number"
+                min={0}
+                max={10}
+                step={0.05}
+                className={input}
+                value={draft.weight}
+                onChange={(e) => setDraft({ ...draft, weight: Number(e.target.value) })}
+              />
+            </div>
+          ) : null}
           <div className="flex flex-col gap-1">
             <label className={label} htmlFor="draft-sort">Порядок</label>
             <input

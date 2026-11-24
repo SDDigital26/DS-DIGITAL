@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Locale } from "@/lib/i18n/config";
 import { FORM_LABELS, SERVICES } from "@/lib/content/site";
+import { readUtm, trackEvent } from "@/lib/tracking";
 
 type Status = "idle" | "sending" | "sent" | "error";
 
@@ -108,8 +109,10 @@ export function ContactForm({ locale, defaultService }: { locale: Locale; defaul
       consent: true,
       consentText: t.consent,
       source: estimate ? "calculator" : "form",
-      landingPath: window.location.pathname,
+      landingPath: readUtm().landingPath ?? window.location.pathname,
       website: "",
+      // Реклама: UTM из посадочной уходит вместе с заявкой (ТЗ §16).
+      ...readUtm(),
       ...(estimate?.snapshot ? { calculatorSnapshot: estimate.snapshot } : {}),
       ...contacts,
     };
@@ -125,6 +128,8 @@ export function ContactForm({ locale, defaultService }: { locale: Locale; defaul
       });
 
       if (res.ok) {
+        // Событие рекламы: отправлена форма заявки (ТЗ §16).
+        trackEvent("lead_submit");
         setStatus("sent");
         setName("");
         setContact("");

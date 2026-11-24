@@ -416,7 +416,7 @@ export default async function HomePage({
         </div>
         <Calculator locale={l} />
         <div className="swrap">
-          <p className="snote">{t.calculator.notReady}</p>
+          <p className="snote">{t.calculator.disclaimer}</p>
         </div>
       </div>
 

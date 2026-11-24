@@ -64,7 +64,7 @@ export type SiteContent = {
   technologies: { title: string; lead: string; groups: { name: string; items: string[] }[] };
   why: { title: string; lead: string; items: { title: string; text: string }[] };
   aiSection: { title: string; lead: string; open: string; note: string; powered: string };
-  calculator: { title: string; lead: string; notReady: string };
+  calculator: { title: string; lead: string; disclaimer: string };
   process: { title: string; lead: string; steps: ProcessStep[] };
   reviews: { title: string; lead: string; empty: string };
   faq: { title: string; lead: string; empty: string };
@@ -227,7 +227,7 @@ const RU: SiteContent = {
   calculator: {
     title: "Калькулятор стоимости",
     lead: "Выберите, что нужно, и получите примерную цену и срок.",
-    notReady: "Цены ещё не согласованы с заказчиком. Расчёт появится здесь после их утверждения — пока оставьте заявку, мы обсудим задачу и сроки.",
+    disclaimer: "Расчёт предварительный. Окончательная стоимость и сроки определяются после обсуждения проекта.",
   },
   process: {
     title: "Как мы работаем",
@@ -470,7 +470,7 @@ const EN: SiteContent = {
   calculator: {
     title: "Cost calculator",
     lead: "Pick what you need and get an indicative price and timeline.",
-    notReady: "Prices are not approved by the client yet. The calculator will appear here once they are confirmed — for now, send a request and we will discuss the task and timeline.",
+    disclaimer: "This is a preliminary estimate. The final cost and timeline are agreed after discussing the project.",
   },
   process: {
     title: "How we work",

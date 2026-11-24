@@ -2,24 +2,24 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Locale } from "@/lib/i18n/config";
-import type { CalcRule, CalcResult, RuleKind } from "@/lib/calculator";
+import { formatFromPrice, formatWeeks, type CalcRule, type CalcResult } from "@/lib/calculator";
+import { trackEvent } from "@/lib/tracking";
 
 type Props = { locale: Locale; compact?: boolean };
 
 type Labels = {
   title: string;
-  lead: string;
   disclaimer: string;
-  service: string;
-  features: string;
-  complexity: string;
+  services: string;
   options: string;
+  other: string;
   result: string;
+  from: string;
   weeks: string;
+  individual: string;
   selected: string;
   submit: string;
   submitting: string;
-  error: string;
   network: string;
   notReady: string;
 };
@@ -27,89 +27,61 @@ type Labels = {
 const LABELS: Record<Locale, Labels> = {
   ru: {
     title: "Калькулятор стоимости",
-    lead: "Выберите, что нужно, и получите примерную цену и срок.",
     disclaimer:
       "Расчёт предварительный. Окончательная стоимость и сроки определяются после обсуждения проекта.",
-    service: "Что нужно",
-    features: "Функции",
-    complexity: "Сложность",
+    services: "Что нужно (можно несколько)",
     options: "Дополнительно",
+    other: "Другое",
     result: "Предварительная стоимость",
+    from: "от",
     weeks: "Срок",
+    individual: "Обсудим индивидуально",
     selected: "Вы выбрали",
     submit: "Отправить расчёт",
     submitting: "Считаем…",
-    error: "Сервер не принял расчёт. Попробуйте ещё раз.",
     network: "Нет соединения с сервером.",
     notReady:
-      "Цены пока не согласованы — калькулятор скоро появится. Оставьте заявку ниже: обсудим задачу и сроки.",
+      "Подберём решение и точную смету индивидуально — оставьте заявку, это ни к чему не обязывает.",
   },
   en: {
     title: "Cost calculator",
-    lead: "Pick what you need and get an indicative price and timeline.",
     disclaimer:
       "This is a preliminary estimate. The final cost and timeline are agreed after discussing the project.",
-    service: "What you need",
-    features: "Features",
-    complexity: "Complexity",
+    services: "What you need (pick several)",
     options: "Optional",
+    other: "Something else",
     result: "Indicative cost",
+    from: "from",
     weeks: "Timeline",
+    individual: "We will discuss it individually",
     selected: "You selected",
     submit: "Send this estimate",
     submitting: "Calculating…",
-    error: "The server rejected the estimate. Try again.",
     network: "Cannot reach the server.",
     notReady:
-      "Prices are not approved yet — the calculator is coming soon. Send a request below and we will discuss the task and timeline.",
+      "We will pick a solution and an exact quote individually — leave a request, no strings attached.",
   },
 };
 
-function groupByKind(rules: CalcRule[], kind: RuleKind) {
+/** Ключ клиентской опции «Другое» — в БД не хранится и на сервер не уходит. */
+const OTHER_KEY = "__other__";
+
+function groupByKind(rules: CalcRule[], kind: CalcRule["kind"]) {
   return rules.filter((r) => r.kind === kind);
 }
 
-/** Одна опция — чекбокс/радио с ценой, если она есть. */
-function Option({
-  id,
-  name,
-  checked,
-  onChange,
-  label,
-  price,
-  locale,
-}: {
-  id: string;
-  name: string;
-  checked: boolean;
-  onChange: () => void;
-  label: string;
-  price: number;
-  locale: Locale;
-}) {
-  return (
-    <label className="opt" htmlFor={id}>
-      <input id={id} name={name} type={name === "complexity" ? "radio" : "checkbox"} checked={checked} onChange={onChange} />
-      <span className="lbl">{label}</span>
-      {price > 0 ? <span className="p">{locale === "ru" ? `+$${price}` : `+$${price}`}</span> : null}
-    </label>
-  );
-}
-
 /**
- * Публичный калькулятор. Правила приходят с сервера (БД), итог считает
- * сервер (`POST /api/calculator`) — клиентская сумма не показывается как
- * «настоящая», а только как предпросмотр. Это не фейковый интерфейс:
- * он реально считает и реально передаёт расчёт в заявку.
+ * Публичный калькулятор (цены владельца, 24.11.2026).
+ * Услуги — чекбоксы: цена = сумма «от»-цен, срок = максимальный.
+ * «Другое» → «Обсудим индивидуально». Правила — из БД, итог считает сервер.
  */
 export function Calculator({ locale, compact = false }: Props) {
   const t = LABELS[locale];
   const [rules, setRules] = useState<CalcRule[]>([]);
   const [disclaimer, setDisclaimer] = useState("");
-  const [service, setService] = useState("");
-  const [features, setFeatures] = useState<string[]>([]);
-  const [complexity, setComplexity] = useState("");
+  const [services, setServices] = useState<string[]>([]);
   const [options, setOptions] = useState<string[]>([]);
+  const [other, setOther] = useState(false);
   const [result, setResult] = useState<CalcResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -123,13 +95,8 @@ export function Calculator({ locale, compact = false }: Props) {
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!data?.ok) return;
-        const rows: CalcRule[] = data.rules ?? [];
-        setRules(rows);
+        setRules(data.rules ?? []);
         setDisclaimer(typeof data.disclaimer?.[locale] === "string" ? (data.disclaimer[locale] as string) : t.disclaimer);
-        const firstService = rows.find((r) => r.kind === "service");
-        const firstComplexity = rows.find((r) => r.kind === "complexity");
-        if (firstService) setService(firstService.key);
-        if (firstComplexity) setComplexity(firstComplexity.key);
         setLoaded(true);
       })
       .catch(() => setLoaded(true));
@@ -138,7 +105,7 @@ export function Calculator({ locale, compact = false }: Props) {
 
   // Пересчёт — только на сервере; клиент ждёт ответа.
   const recalc = useCallback(
-    async (next: { service: string; features: string[]; complexity: string; options: string[] }) => {
+    async (next: { services: string[]; options: string[] }) => {
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
@@ -152,7 +119,7 @@ export function Calculator({ locale, compact = false }: Props) {
           signal: controller.signal,
         });
         if (!res.ok) throw new Error("bad");
-        const data = (await res.json()) as { ok: true; result: CalcResult; disclaimer?: Record<string, string> };
+        const data = (await res.json()) as { ok: true; result: CalcResult | null; disclaimer?: Record<string, string> };
         setResult(data.result);
         if (data.disclaimer?.[locale]) setDisclaimer(data.disclaimer[locale]);
       } catch {
@@ -166,41 +133,57 @@ export function Calculator({ locale, compact = false }: Props) {
 
   // Автопересчёт при изменении выбора — с задержкой, чтобы не спамить.
   useEffect(() => {
-    if (!loaded || !service) return;
+    if (!loaded || services.length === 0) return;
     const timer = window.setTimeout(() => {
-      void recalc({ service, features, complexity, options });
+      void recalc({ services, options });
     }, 180);
     return () => window.clearTimeout(timer);
-  }, [loaded, service, features, complexity, options, recalc]);
+  }, [loaded, services, options, recalc]);
 
-  const services = groupByKind(rules, "service");
-  const featureRules = groupByKind(rules, "feature");
-  const complexityRules = groupByKind(rules, "complexity");
+  const serviceRules = groupByKind(rules, "service");
   const optionRules = groupByKind(rules, "option");
-  // Цены ещё не согласованы (нет правил в БД) — честно показываем заглушку.
-  const notReady = loaded && services.length === 0;
+  // Правил в БД нет — честно предлагаем обсудить задачу (без слов про согласование).
+  const notReady = loaded && serviceRules.length === 0;
 
   const toggle = (list: string[], key: string) =>
     list.includes(key) ? list.filter((k) => k !== key) : [...list, key];
 
+  const hasSelection = services.length > 0 || other;
+  const individualOnly = other && services.length === 0;
+  // Пока ни одна услуга не выбрана — прежний результат не показываем.
+  const visibleResult = services.length > 0 ? result : null;
+  const selectedLabels = [
+    ...(visibleResult?.selectedLabels ?? []),
+    ...(other ? [`${t.other} — ${t.individual.toLowerCase()}`] : []),
+  ];
+
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (result) {
-      // Снимок расчёта уходит вместе с заявкой (source=calculator) — ТЗ §12.5.
-      window.dispatchEvent(
-        new CustomEvent("ds:estimate", {
-          detail: {
-            text: `${t.selected}: ${result.selectedLabels.join(", ")}\n$${result.min} – $${result.max} · ${t.weeks}: ${result.weeksMin}–${result.weeksMax} ${locale === "ru" ? "нед." : "weeks"}`,
-            snapshot: {
-              locale,
-              selection: { service, features, complexity, options },
-              result,
-            },
-            serviceLabel: services.find((r) => r.key === service)?.label ?? service,
+    if (!hasSelection) return;
+
+    const labels: string[] = selectedLabels;
+
+    const weeks = visibleResult ? formatWeeks(locale, visibleResult.weeksMin, visibleResult.weeksMax) : "";
+    const priceText = visibleResult
+      ? formatFromPrice(locale, visibleResult.price)
+      : t.individual;
+
+    // Снимок расчёта уходит вместе с заявкой (source=calculator) — ТЗ §12.5.
+    window.dispatchEvent(
+      new CustomEvent("ds:estimate", {
+        detail: {
+          text: `${t.selected}: ${labels.join(", ")}\n${priceText}${weeks ? ` · ${t.weeks}: ${weeks}` : ""}`,
+          snapshot: {
+            locale,
+            selection: { services, options, other },
+            result,
           },
-        }),
-      );
-    }
+          serviceLabel: serviceRules.find((r) => services.includes(r.key))?.label ?? t.other,
+        },
+      }),
+    );
+    // Событие рекламы: расчёт использован (ТЗ §16).
+    trackEvent("calc_used");
     document.getElementById("lead")?.scrollIntoView({ behavior: "smooth" });
   };
 
@@ -225,71 +208,58 @@ export function Calculator({ locale, compact = false }: Props) {
     <section id="calc-body" className="calc" aria-label={t.title}>
       <div className="calc-grid">
         <form className="panel fields" onSubmit={submit}>
-          <div className="fld">
-            <label htmlFor="calc_svc">{t.service}</label>
-            <select id="calc_svc" value={service} onChange={(e) => setService(e.target.value)}>
-              {services.map((r) => (
-                <option key={r.key} value={r.key}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {featureRules.length > 0 ? (
-            <fieldset className="fld">
-              <legend>{t.features}</legend>
-              <div className="opts">
-                {featureRules.map((r) => (
-                  <Option
-                    key={r.key}
-                    id={`f_${r.key}`}
-                    name="features"
-                    label={r.label}
-                    price={r.price}
-                    locale={locale}
-                    checked={features.includes(r.key)}
-                    onChange={() => setFeatures((v) => toggle(v, r.key))}
-                  />
-                ))}
-              </div>
-            </fieldset>
-          ) : null}
-
-          {complexityRules.length > 0 ? (
-            <fieldset className="fld">
-              <legend>{t.complexity}</legend>
-              <div className="seg" role="radiogroup" aria-label={t.complexity}>
-                {complexityRules.map((r) => (
-                  <label key={r.key} className={complexity === r.key ? "on" : ""}>
+          <fieldset className="fld">
+            <legend>{t.services}</legend>
+            <div className="opts">
+              {serviceRules.map((r) => {
+                const weeks = formatWeeks(locale, r.weeksMin, r.weeksMax);
+                return (
+                  <label key={r.key} className="opt" htmlFor={`s_${r.key}`}>
                     <input
-                      type="radio"
-                      name="calc_complexity"
-                      checked={complexity === r.key}
-                      onChange={() => setComplexity(r.key)}
+                      id={`s_${r.key}`}
+                      name="services"
+                      type="checkbox"
+                      checked={services.includes(r.key)}
+                      onChange={() => setServices((v) => toggle(v, r.key))}
                     />
-                    <span>{r.label}</span>
+                    <span className="lbl">
+                      {r.label}
+                      {weeks ? <small className="wk">{weeks}</small> : null}
+                    </span>
+                    <span className="p">{formatFromPrice(locale, r.price)}</span>
                   </label>
-                ))}
-              </div>
-            </fieldset>
-          ) : null}
+                );
+              })}
+              <label className="opt" htmlFor={`s_${OTHER_KEY}`}>
+                <input
+                  id={`s_${OTHER_KEY}`}
+                  name="services-other"
+                  type="checkbox"
+                  checked={other}
+                  onChange={() => setOther((v) => !v)}
+                />
+                <span className="lbl">{t.other}</span>
+                <span className="p muted">{t.individual}</span>
+              </label>
+            </div>
+          </fieldset>
 
           {optionRules.length > 0 ? (
             <fieldset className="fld">
               <legend>{t.options}</legend>
               <div className="opts">
                 {optionRules.map((r) => (
-                  <Option
-                    key={r.key}
-                    id={`o_${r.key}`}
-                    name="options"
-                    label={r.label}
-                    price={r.price}
-                    locale={locale}
-                    checked={options.includes(r.key)}
-                    onChange={() => setOptions((v) => toggle(v, r.key))}
-                  />
+                  <label key={r.key} className="opt" htmlFor={`o_${r.key}`}>
+                    <input
+                      id={`o_${r.key}`}
+                      name="options"
+                      type="checkbox"
+                      checked={options.includes(r.key)}
+                      onChange={() => setOptions((v) => toggle(v, r.key))}
+                    />
+                    <span className="lbl">{r.label}</span>
+                    <span className="p">+{formatFromPrice(locale, r.price).replace(/^(от|from) /, "")}</span>
+                  </label>
                 ))}
               </div>
             </fieldset>
@@ -305,22 +275,26 @@ export function Calculator({ locale, compact = false }: Props) {
         <div className="panel result" aria-live="polite">
           <div className="l note">{t.result}</div>
           <div className="price">
-            {result ? `$${result.min} – $${result.max}` : "—"}
+            {individualOnly
+              ? t.individual
+              : visibleResult
+                ? formatFromPrice(locale, visibleResult.price)
+                : ""}
           </div>
-          <div className="weeks">
-            {result
-              ? `${t.weeks}: ${result.weeksMin}–${result.weeksMax} ${locale === "ru" ? "нед." : "weeks"}`
-              : "—"}
-          </div>
-          {result?.selectedLabels.length ? (
+          {visibleResult && (visibleResult.weeksMin !== null || visibleResult.weeksMax !== null) ? (
+            <div className="weeks">
+              {t.weeks}: {formatWeeks(locale, visibleResult.weeksMin, visibleResult.weeksMax)}
+            </div>
+          ) : null}
+          {selectedLabels.length ? (
             <ul className="sel">
-              {result.selectedLabels.map((label) => (
+              {selectedLabels.map((label) => (
                 <li key={label}>{label}</li>
               ))}
             </ul>
           ) : null}
           <p className="note">{disclaimer || t.disclaimer}</p>
-          <button type="submit" className="sbtn p" disabled={loading || !result} onClick={submit}>
+          <button type="submit" className="sbtn p" disabled={loading || !hasSelection} onClick={submit}>
             {loading ? t.submitting : t.submit}
           </button>
           {compact ? <span className="sr-only">calculator</span> : null}
