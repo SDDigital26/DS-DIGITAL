@@ -119,8 +119,8 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettings }) {
               value={form.effectsMode}
               onChange={(e) => patch("effectsMode", e.target.value as SiteSettings["effectsMode"])}
             >
-              <option value="full">Full — все эффекты</option>
-              <option value="lite">Lite — без тяжёлых эффектов</option>
+              <option value="full">Full — матричный дождь на фоне + все эффекты</option>
+              <option value="lite">Lite — спокойный режим без фонового кода</option>
               <option value="static">Static — только статика</option>
             </select>
           </div>
