@@ -111,7 +111,9 @@ export function TelegramBotForm() {
     <section className="rounded-2xl border border-white/10 bg-surface/40 p-4">
       <h2 className="text-lg font-semibold">Telegram-бот для заявок</h2>
       <p className="mt-1 text-xs text-secondary">
-        Бот отправляет уведомление о каждой новой заявке в чат или канал. Токен создаётся у{" "}
+        Бот отправляет уведомление о каждой новой заявке в чат или канал (приходит мгновенно).
+        Кнопка «Отправить тест» проверяет токен из поля ниже; если поле пустое — уже сохранённый.
+        Токен создаётся у{" "}
         <a className="text-link" href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer">
           @BotFather
         </a>

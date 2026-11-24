@@ -21,8 +21,11 @@
     "Segoe UI", Roboto, sans-serif;
   line-height: 1.5;
   color: var(--text);
-  /* Фон остаётся на body: слой молнии рисуется над ним, но под контентом. */
+  /* Фон остаётся на body: слои матрицы/молнии рисуются над ним, но под контентом. */
   background: transparent;
+  /* Стекинг-контекст: весь контент сайта выше фонового слоя матрицы (#ds-matrix). */
+  position: relative;
+  z-index: 1;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -37,8 +40,8 @@ html[data-theme="light"] .ds {
   --sec: #47536b;
   --line: rgba(23, 107, 255, 0.22);
   color-scheme: light;
-  /* Фон прототипа на светлой теме — белый, чтобы кольца и текст читались четко */
-  background: #ffffff;
+  /* Фон светлой темы — на body (#f5f7fb): прозрачный .ds пропускает матрицу. */
+  background: transparent;
 }
 
 .ds > main,
@@ -63,7 +66,24 @@ html[data-theme="light"] .ds {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  z-index: 1;
+  /* Молния над контентом (транзитные линии); матрица — под ним, см. #ds-matrix. */
+  z-index: 2;
+}
+
+/* Матричный дождь (режим full): фон всего сайта, медленный и бледный. */
+#ds-matrix {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.9;
+}
+
+html[data-theme="light"] #ds-matrix {
+  /* На светлом фоне дождь ещё спокойнее — не мешает чтению. */
+  opacity: 0.6;
 }
 
 /* ---------- header ---------- */

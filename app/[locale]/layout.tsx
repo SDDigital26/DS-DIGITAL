@@ -6,6 +6,7 @@ import { getSiteContent } from "@/lib/content/site-overrides";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { SiteFooter } from "@/components/site/SiteFooter";
 import { Lightning } from "@/components/site/Lightning";
+import { MatrixRain } from "@/components/site/MatrixRain";
 import { CursorSparks } from "@/components/site/CursorSparks";
 import { AiConsultant } from "@/components/site/AiConsultant";
 import { CookieBanner } from "@/components/site/CookieBanner";
@@ -82,8 +83,9 @@ export default async function LocaleLayout({
       <body className="min-h-full">
         {/* Метрики — только после согласия на аналитику (cookie-политика). */}
         <AnalyticsGate />
-        {/* Молния (тёмная тема) и искры+кометы (светлая тема) — вне .ds,
-            чтобы overflow-x: clip не влиял на fixed-слой */}
+        {/* Фоновые слои — вне .ds, чтобы overflow-x: clip не влиял на fixed-слой:
+            матричный дождь (full, обе темы) под контентом, молния (тёмная) над ним. */}
+        <MatrixRain mode={settings.effectsMode} />
         <Lightning mode={settings.effectsMode} />
         <CursorSparks />
         {/* .ds — скоуп стилей прототипа: не задевает Tailwind-классы внутренних страниц */}

@@ -57,7 +57,19 @@ export async function sendTelegramRaw(
     });
 
     if (!res.ok) {
-      return { ok: false, error: `telegram status ${res.status}` };
+      // Понятные причины вместо сухого «telegram status 404» (ТЗ §14.3):
+      // владелец должен сразу понимать, что именно не так с токеном/чатом.
+      const detail =
+        ((await res.json().catch(() => null)) as { description?: string } | null)?.description ?? "";
+      const hint: Record<number, string> = {
+        400: "неверный chat_id — укажите числовой ID чата или @имя публичного канала",
+        401: "токен недействителен — создайте нового бота у @BotFather",
+        403: "боту запрещён доступ к чату — напишите боту /start или добавьте его администратором в канал",
+        404: "бот с таким токеном не найден — проверьте токен у @BotFather",
+        429: "слишком много запросов — повторите через минуту",
+      };
+      const reason = hint[res.status] ?? detail ?? "ошибка отправки";
+      return { ok: false, error: `Telegram ${res.status}: ${reason}` };
     }
     return { ok: true };
   } catch (err) {

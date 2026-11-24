@@ -10,14 +10,8 @@ export function ThemeToggle() {
     const stored = localStorage.getItem("ds-theme");
     const isLight = stored === "light";
     document.documentElement.dataset.theme = isLight ? "light" : "dark";
-    // Синхронизируем состояние и фон .ds асинхронно (без каскадного ре-рендера)
-    queueMicrotask(() => {
-      setLight(isLight);
-      const ds = document.querySelector('.ds') as HTMLElement;
-      if (ds) {
-        ds.style.background = isLight ? '#ffffff' : 'transparent';
-      }
-    });
+    // Фон страницы и слоёв эффектов задаётся CSS по data-theme — без inline-стилей.
+    queueMicrotask(() => setLight(isLight));
   }, []);
 
   function toggle() {
@@ -25,13 +19,6 @@ export function ThemeToggle() {
     setLight(next);
     document.documentElement.dataset.theme = next ? "light" : "dark";
     localStorage.setItem("ds-theme", next ? "light" : "dark");
-    // Синхронизируем фон .ds при клике
-    queueMicrotask(() => {
-      const ds = document.querySelector('.ds') as HTMLElement;
-      if (ds) {
-        ds.style.background = next ? '#ffffff' : 'transparent';
-      }
-    });
   }
 
   return (
